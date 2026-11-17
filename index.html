@@ -551,11 +551,10 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
 .ctag.neg{color:#3D4E66;background:#EDF2F9;border-color:#CBD6E4}
 .ctag.mid{color:#7A5A2E;background:#FFF6E6;border-color:#F2DFBB}
 
-/* ---------- 💬 후기 필터 줄 (전체·긍정·비추·태그) ---------- */
+/* ---------- 💬 후기 필터 줄 (전체·긍정·비추·애견동반·주차가능 5칩) ---------- */
 .cmfilt{margin:0 0 10px;padding:9px 10px 8px;border-radius:15px;background:#FFFDFA;border:1px solid #EFE4D6}
 .cmfiltrow{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:1px}
 .cmfiltrow::-webkit-scrollbar{display:none}
-.cmfiltrow.tags{margin-top:7px;padding-top:7px;border-top:1px dashed #EFE4D6}
 .cmfbtn{flex:0 0 auto;font:inherit;font-size:12px;font-weight:850;color:#6E635A;background:#fff;
   border:1px solid #E7DCCF;border-radius:999px;padding:6px 11px;white-space:nowrap;cursor:pointer;
   touch-action:manipulation;-webkit-tap-highlight-color:rgba(225,84,46,.12)}
@@ -563,14 +562,6 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
 .cmfbtn.neg b{color:#3D4E66}
 .cmfbtn.on{background:#2A2118;border-color:#2A2118;color:#FFF6E8}
 .cmfbtn.on b{color:#FFD08A}
-.cmftag{flex:0 0 auto;font:inherit;font-size:11.5px;font-weight:800;color:#6E5A4A;background:#fff;
-  border:1px solid #E7DCCF;border-radius:999px;padding:5px 9px;white-space:nowrap;cursor:pointer;
-  touch-action:manipulation}
-.cmftag b{font-weight:900;opacity:.6;margin-left:1px}
-.cmftag.pos{color:#B8431F;border-color:#F6CDBC;background:#FFF7F2}
-.cmftag.neg{color:#3D4E66;border-color:#CBD6E4;background:#F5F8FC}
-.cmftag.on{background:#2A2118;border-color:#2A2118;color:#FFF6E8}
-.cmftag.on b{opacity:.8;color:#FFD08A}
 
 /* ---------- 🟢 영업중 조건 칩 ---------- */
 #pchips .chip[data-pc="open"]{color:#1F7A4D;border-color:#CFE6DA;background:#F4FBF7}
@@ -2350,10 +2341,19 @@ var total = 0;
     var i = CMFILT.keys.indexOf(k);
     if(i >= 0) CMFILT.keys.splice(i, 1); else CMFILT.keys.push(k);
   }
+  /* 필터 줄의 편의 칩 2종이 묶는 태그 — 저장된 표기가 달라도 같은 뜻이면 함께 잡는다 */
+  var CMFDOG = ['댕댕이환영', '애견환영'];
+  var CMFPARK = ['주차편함', '주차가능'];
+  function cmfTagHit(tags, list){
+    for(var i = 0; i < list.length; i++){ if(tags.indexOf(list[i]) >= 0) return true; }
+    return false;
+  }
   /* 선택된 필터를 모두 만족하는 후기만(AND) — '👍 긍정'·'👎 비추'는 그 극성 태그를 하나라도 가진 후기 */
   function cmfLabel(k){
     if(k === 'pos') return '👍 긍정';
     if(k === 'neg') return '👎 비추';
+    if(k === 'dog') return '🐶 애견동반';
+    if(k === 'park') return '🚗 주차가능';
     return esc(UNGC.tagLabel(k));
   }
 
@@ -2453,7 +2453,7 @@ var total = 0;
 
   /* 후기 태그 집계 — 긍정/비추 후기 수와 개별 태그별 건수 */
   function cmTagStats(items){
-    var st = { total: items.length, pos: 0, neg: 0, mid: 0, byTag: {} };
+    var st = { total: items.length, pos: 0, neg: 0, mid: 0, dog: 0, park: 0, byTag: {} };
     for(var i = 0; i < items.length; i++){
       var tags = UNGC.parseTags(items[i].c.t).tags, hasP = false, hasN = false;
       for(var j = 0; j < tags.length; j++){
@@ -2464,6 +2464,8 @@ var total = 0;
       }
       if(hasP) st.pos++;
       if(hasN) st.neg++;
+      if(cmfTagHit(tags, CMFDOG)) st.dog++;
+      if(cmfTagHit(tags, CMFPARK)) st.park++;
     }
     return st;
   }
@@ -2480,7 +2482,7 @@ var total = 0;
           for(var t = 0; t < tags.length; t++){ if(UNGC.pol(tags[t]) === k){ hit = true; break; } }
           ok = hit;
         } else {
-          ok = tags.indexOf(k) >= 0;
+          ok = cmfTagHit(tags, (k === 'dog') ? CMFDOG : (k === 'park') ? CMFPARK : [k]);
         }
       }
       if(ok) out.push(items[i]);
@@ -2491,7 +2493,9 @@ var total = 0;
     var spec = [
       {k:'all', t:'전체', n:st.total, cls:'all'},
       {k:'pos', t:'👍 긍정', n:st.pos, cls:'pos'},
-      {k:'neg', t:'👎 비추', n:st.neg, cls:'neg'}
+      {k:'neg', t:'👎 비추', n:st.neg, cls:'neg'},
+      {k:'dog', t:'🐶 애견동반', n:st.dog, cls:'dog'},
+      {k:'park', t:'🚗 주차가능', n:st.park, cls:'park'}
     ], h = '';
     h += '<div class="cmfilt"><div class="cmfiltrow">';
     for(var i = 0; i < spec.length; i++){
@@ -2499,20 +2503,7 @@ var total = 0;
       h += '<button class="cmfbtn ' + spec[i].cls + (on ? ' on' : '') + '" type="button" data-cmf="' + spec[i].k +
         '" aria-pressed="' + (on ? 'true' : 'false') + '">' + spec[i].t + ' <b>' + spec[i].n + '</b></button>';
     }
-    h += '</div>';
-    var tags = [], k;
-    for(k in st.byTag){ if(st.byTag.hasOwnProperty(k) && st.byTag[k] > 0) tags.push(k); }
-    if(tags.length){
-      tags.sort(function(a, b){ return (st.byTag[b] - st.byTag[a]) || (a < b ? -1 : a > b ? 1 : 0); });
-      h += '<div class="cmfiltrow tags">';
-      for(var j = 0; j < tags.length; j++){
-        var tk = tags[j], ton = cmfHas(tk);
-        h += '<button class="cmftag ' + UNGC.pol(tk) + (ton ? ' on' : '') + '" type="button" data-cmt="' + esc(tk) +
-          '" aria-pressed="' + (ton ? 'true' : 'false') + '">' + esc(UNGC.tagLabel(tk)) + ' <b>' + st.byTag[tk] + '</b></button>';
-      }
-      h += '</div>';
-    }
-    return h + '</div>';
+    return h + '</div></div>';
   }
 
   function rankBannerHTML(rank){
@@ -2607,13 +2598,6 @@ var total = 0;
         var mk = fb.getAttribute('data-cmf');
         if(mk === 'all') CMFILT.keys = [];      /* 전체: 필터 모두 해제 */
         else cmfToggle(mk);                      /* 여러 개 동시 선택 */
-        renderCmFeed(); return;
-      }
-      var ft = el.closest ? el.closest('[data-cmt]') : null;
-      if(ft){
-        ev.preventDefault();
-        var tk2 = ft.getAttribute('data-cmt');
-        cmfToggle(tk2);
         renderCmFeed(); return;
       }
       var stb = el.closest ? el.closest('.stamp') : null;
