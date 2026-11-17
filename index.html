@@ -751,6 +751,14 @@ var UNGC = (function () {
       '💬 후기 <span class="cn">'+UNGC.count(id)+'</span></button></div>';
   }
 
+  // 지도 직링크 종류에 따라 버튼 문구를 구분한다(네이버 플레이스 / 카카오맵 / 구글 지도)
+  function mapLabel(u){
+    u = u || '';
+    if(u.indexOf('map.kakao') >= 0 || u.indexOf('kakao.com') >= 0) return '카카오맵에서 열기';
+    if(u.indexOf('google') >= 0) return '구글 지도에서 열기';
+    return '지도에서 열기';
+  }
+
   function rowHTML(p, kind){
     var body = '<div class="pn">'+esc(p.name)+'</div>'+
       (p.region?'<div class="pm">'+esc(p.region)+'</div>':'')+
@@ -759,7 +767,7 @@ var UNGC = (function () {
     if(!p.map && !p.ig) return '<div class="prow"><div class="pmain plain">'+body+'</div>'+cbtnHTML(p)+'</div>';
     var main = p.map || p.ig;
     var go = p.map
-      ? '<div class="pgo">🗺️ 지도에서 열기<span class="ar">›</span></div>'
+      ? '<div class="pgo">🗺️ '+mapLabel(p.map)+'<span class="ar">›</span></div>'
       : '<div class="pgo ig">📷 인스타에서 보기<span class="ar">›</span></div>';
     var out = '<div class="prow"><a class="pmain" href="'+esc(main)+'" target="_blank" rel="noopener">'+
       body+go+'</a>';
