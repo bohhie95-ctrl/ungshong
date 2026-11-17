@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>다정집</title>
 <meta name="theme-color" content="#FAF6F1">
+<meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="다정집">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -67,12 +68,21 @@ h1.brand em{font-style:normal;color:var(--accent)}
 .favpill .n{opacity:.55;font-weight:700}
 .favpill.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .favpill.on .n{opacity:.8}
+/* 💬 후기 전체보기 pill — 레시피·가볼 곳 어느 탭에서든 스크롤 없이 바로 보이는 자리 */
+.cmbtn{display:inline-flex;align-items:center;gap:3px;border:1px solid #F2C3AE;background:var(--soft);
+  color:var(--accent-d);border-radius:999px;padding:5px 10px;font-family:inherit;font-size:11.5px;font-weight:850;
+  white-space:nowrap;flex:0 0 auto;margin:0 1px;box-shadow:0 1px 3px rgba(225,84,46,.16)}
+.cmbtn .n{font-weight:800;opacity:.85}
+.cmbtn.on{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 1px 3px rgba(225,84,46,.3)}
+.cmbtn.on .n{color:#fff;opacity:.9}
+.cmbtn[hidden]{display:none}
 @media(max-width:350px){
   .seg button{padding:5px 6px;font-size:11px}
   .seg button .n{display:none}
   .favpill{padding:5px 7px;font-size:11px;margin:0 1px}
+  .cmbtn{padding:5px 7px;font-size:11px;margin:0}
 }
-.subrow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 1px 1px}
+.subrow{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;row-gap:4px;padding:7px 1px 1px}
 .cnt{font-size:11.5px;color:var(--muted);white-space:nowrap}
 .cnt b{color:var(--ink);font-weight:800}
 .seg{display:flex;background:#F0E8E0;border-radius:999px;padding:2px;flex:0 0 auto}
@@ -337,6 +347,7 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
 .bar .chip{padding:3px 9px;font-size:11.5px}
 .bar .subrow{padding:2px 1px 0;min-height:16px}
 .bar .cnt{font-size:10.5px}
+.bar .cmbtn{padding:4px 8px;font-size:11px;font-weight:800}
 .bar .ptool{padding:3px 9px;font-size:11px}
 
 /* --- 지역 칩 줄 --- */
@@ -441,6 +452,7 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
   <div class="subrow">
     <div class="cnt" id="cnt"></div>
     <button class="favpill" id="favpill" type="button" aria-pressed="false">♡ 찜만 <span class="n" id="favn">0</span></button>
+    <button class="cmbtn" id="cmallbtn" type="button" aria-pressed="false" aria-label="후기 있는 곳만 모아보기">💬 후기 <span class="n" id="cmalln">0</span></button>
     <div class="seg" id="stat"></div>
     <div class="ptools" id="ptools" hidden><button class="ptool" id="dicebtn" type="button" aria-label="오늘 어디 가지 랜덤 뽑기">🎲 오늘 어디 가지?</button></div>
   </div>
@@ -1507,9 +1519,9 @@ var UNGC = (function () {
     {k:'all',      t:'전체'},
     {k:'fav',      t:'♡ 찜',        mk:'f'},
     {k:'done',     t:'✓ 다녀옴',    mk:'d'},
+    {k:'comment',  t:'💬 후기'},
     {k:'pk',       t:'주차가능'},
     {k:'pet',      t:'애견동반'},
-    {k:'comment',  t:'💬 후기'},
     {k:'seongsu',  t:'성수·서울숲', keys:['성수','서울숲','뚝섬']},
     {k:'hongdae',  t:'홍대·연남',   keys:['홍대','연남','합정','상수','망원']},
     {k:'gangnam',  t:'강남·선릉',   keys:['강남','선릉','역삼','삼성','논현','압구정','청담','테헤란']},
@@ -1525,6 +1537,17 @@ var UNGC = (function () {
   function commentCount(p){
     if(!UNGC.enabled()) return 0;
     return UNGC.count(UNGC.placeId(p.name, p.region));
+  }
+
+  /* 모든 장소 후기를 합친 총 후기 수 — 하단 줄 💬 후기 pill 숫자 */
+  function commentAllCount(){
+    if(!UNGC.enabled()) return 0;
+    var n = 0;
+    PL.forEach(function(sec){
+      if(sec.k === 'folder') return;
+      sec.p.forEach(function(p){ n += UNGC.count(UNGC.placeId(p.name, p.region)); });
+    });
+    return n;
   }
 
   function placeMatch(p, ck){
@@ -1573,7 +1596,35 @@ var UNGC = (function () {
         (c.k === 'all' ? '' : '<span class="c">'+counts[c.k]+'</span>')+'</button>';
     });
     pchipsEl.innerHTML = html;
+    renderCmPill();
   }
+
+  /* 하단 줄 💬 후기 pill — 어느 탭에서든 눌러서 후기 있는 곳으로 바로 모아본다 */
+  var cmAllBtn = document.getElementById('cmallbtn');
+  function renderCmPill(){
+    if(!cmAllBtn) return;
+    var en = UNGC.enabled();
+    cmAllBtn.hidden = !en;
+    var nEl = document.getElementById('cmalln');
+    if(nEl) nEl.textContent = en ? commentAllCount() : 0;
+    var on = en && state.view === 'place' && state.pchip === 'comment';
+    cmAllBtn.classList.toggle('on', on);
+    cmAllBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+  if(cmAllBtn) cmAllBtn.addEventListener('click', function(){
+    if(state.view === 'recipe'){
+      /* 레시피에서 쓰던 검색어·지역 필터가 남아 있으면 결과가 비므로 비우고 '후기 있는 곳'만 모아 보여준다 */
+      if(q){ q.value = ''; }
+      if(qx){ qx.classList.remove('on'); }
+      state.q = ''; state.region = 'all'; SECOPEN = {};
+      state.pchip = 'comment';
+      setView('place');
+    } else {
+      state.pchip = (state.pchip === 'comment') ? 'all' : 'comment';
+      renderPChips(); renderPlaces();
+    }
+    renderCmPill();
+  });
 
   /* 후기 개수가 바뀌면(불러오기·새 후기) 칩 숫자와 💬 후기 목록을 함께 갱신 */
   var _cmtHookBusy = false;
@@ -1583,6 +1634,7 @@ var UNGC = (function () {
     try {
       renderPChips();
       if(state.pchip === 'comment') renderPlaces();
+      renderCmPill();
     } catch(e) {} finally { _cmtHookBusy = false; }
   };
   pchipsEl.addEventListener('click', function(ev){
@@ -1775,6 +1827,7 @@ var total = 0;
     empty.classList.toggle('on', false);
     if(isR){ renderGrid(); }
     else { renderPChips(); renderRChips(); renderPlaces(); }
+    renderCmPill();
     window.scrollTo({top:0, behavior:'instant' in document.documentElement.style ? 'instant' : 'auto'});
   }
   tabbar.addEventListener('click', function(ev){
