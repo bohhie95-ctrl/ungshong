@@ -1,0 +1,23 @@
+{
+  "name": "다정집",
+  "short_name": "다정집",
+  "description": "인스타 저장 요리 레시피 158건과 국내 가볼 곳 1,206곳을 폰에서 바로 보는 레시피북·플레이스북",
+  "start_url": "../",
+  "scope": "../",
+  "display": "standalone",
+  "background_color": "#FAF6F1",
+  "theme_color": "#FAF6F1",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "dajeongjip-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "dajeongjip-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
