@@ -598,7 +598,7 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
   font-size:10px;font-weight:850;color:#fff;background:rgba(26,20,16,.62);border-radius:999px;padding:3px 7px;
   -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);letter-spacing:.01em}
 .rcmb.has{display:inline-flex}
-</style>
+.icebtn{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--muted);font:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex:0 0 auto}.icebtn.on{border-color:var(--accent);background:#fff3ec;color:var(--accent)}.rtimer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:10px 12px;border-radius:12px;background:#fff8f3;border:1px solid #f0ded3;margin-top:4px}.rtimer .tdisp{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink);letter-spacing:.5px}.rtimer.done .tdisp{color:var(--accent)}.rtimer .tbtns{display:flex;flex-wrap:wrap;gap:5px}.rtimer .tb{padding:5px 9px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink);font:inherit;font-size:11.5px;font-weight:700;cursor:pointer}.rtimer .tb.go{background:var(--accent);border-color:var(--accent);color:#fff}</style>
 </head>
 <body>
 
@@ -626,6 +626,7 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
   <div class="chips" id="rcchips" hidden></div>
   <div class="subrow">
     <div class="cnt" id="cnt"></div>
+    <button class="icebtn" id="icebtn" type="button" aria-expanded="false">🧊 냉장고 ▾</button>
     <button class="favpill" id="favpill" type="button" aria-pressed="false">♡ 찜만 <span class="n" id="favn">0</span></button>
     <div class="seg" id="stat"></div>
     <div class="ptools" id="ptools" hidden><button class="ptool" id="dicebtn" type="button" aria-label="오늘 어디 가지 랜덤 뽑기">🎲 오늘 어디 가지?</button></div>
@@ -683,8 +684,22 @@ var UNGC = (function () {
     { k: '가성비아쉬움', e: '😅', t: '가성비 아쉬움',  p: 'neg' },
     { k: '재방문글쎄',  e: '🙅‍♀️', t: '재방문 글쎄',  p: 'neg' }
   ];
+  var RSTAMPS = [
+    { k: '존맛탱',      e: '😋', t: '존맛탱',        p: 'pos' },
+    { k: '초간단',      e: '⏱️', t: '진짜 초간단',   p: 'pos' },
+    { k: '또해먹을래',  e: '🔁', t: '또 해먹을래',   p: 'pos' },
+    { k: '밥도둑',      e: '🍚', t: '밥도둑',        p: 'pos' },
+    { k: '간조절필요',  e: '🧂', t: '간 조절 필요',  p: 'mid' },
+    { k: '매콤함',      e: '🌶️', t: '꽤 매콤',       p: 'mid' },
+    { k: '꿀팁있음',    e: '💡', t: '꿀팁 있음',     p: 'mid' },
+    { k: '쏘쏘',        e: '🫠', t: '생각보다 쏘쏘', p: 'neg' },
+    { k: '손많이감',    e: '😵', t: '손 많이 감',    p: 'neg' }
+  ];
   var STAMPBY = {};
-  (function () { for (var i = 0; i < STAMPS.length; i++) STAMPBY[STAMPS[i].k] = STAMPS[i]; })();
+  (function () {
+    for (var i = 0; i < STAMPS.length; i++) STAMPBY[STAMPS[i].k] = STAMPS[i];
+    for (var j = 0; j < RSTAMPS.length; j++) STAMPBY[RSTAMPS[j].k] = RSTAMPS[j];
+  })();
   /* 태그 성격: pos(긍정) · mid(참고/편의) · neg(부정/아쉬움) */
   function polOf(k) { var s = STAMPBY[k]; return s ? (s.p || 'mid') : 'mid'; }
   function tagLabel(k) { var s = STAMPBY[k]; return s ? (s.e + ' ' + s.t) : ('🏷 ' + k); }
@@ -717,12 +732,13 @@ var UNGC = (function () {
     }
     return '<span class="ctags">' + h + '</span>';
   }
-  function stampButtonsHTML(sel) {
+  function stampButtonsHTML(sel, id) {
+    var list = (id && String(id).indexOf('r_') === 0) ? RSTAMPS : STAMPS;
     var on = {};
     for (var j = 0; j < (sel || []).length; j++) on[sel[j]] = 1;
     var h = '<div class="stampwrap" role="group" aria-label="스탬프 태그">';
-    for (var i = 0; i < STAMPS.length; i++) {
-      var st = STAMPS[i], o = !!on[st.k];
+    for (var i = 0; i < list.length; i++) {
+      var st = list[i], o = !!on[st.k];
       h += '<button class="stamp st-' + (st.p || 'mid') + (o ? ' on' : '') + '" type="button" data-st="' + st.k + '" aria-pressed="' +
         (o ? 'true' : 'false') + '">' + st.e + ' ' + st.t + '</button>';
     }
@@ -1076,7 +1092,7 @@ var UNGC = (function () {
           'placeholder="한 줄 후기 (최대 ' + MAXT + '자)">' +
         '<button class="csubmit" type="button">등록</button>' +
       '</div>' +
-      stampButtonsHTML() +
+      stampButtonsHTML(null, id) +
       '<div class="cmsg" role="status"></div>' +
       '</div>';
   }
@@ -1116,7 +1132,7 @@ var UNGC = (function () {
     if (ed) ed.style.display = 'none';
     var box2 = document.createElement('div'), pz = parseTags(cur);
     box2.className = 'ceditbox';
-    box2.innerHTML = stampButtonsHTML(pz.tags) +
+    box2.innerHTML = stampButtonsHTML(pz.tags, box.getAttribute('data-cid')) +
       '<div class="cetop"><input type="text" maxlength="' + MAXT + '" value="' + esc(pz.body) + '" aria-label="후기 수정">' +
       '<button type="button" class="save" data-cs="' + esc(cid) + '">저장</button>' +
       '<button type="button" data-cc="1">취소</button></div>';
@@ -1292,7 +1308,7 @@ var UNGC = (function () {
   var CATS = [];
   D.forEach(function(e){ if(CATS.indexOf(e.c) < 0) CATS.push(e.c); });
 
-  var state = { view:'recipe', cat:'all', stats:[], q:'', fav:false, ings:[], pcs:[], region:'all', food:'all' };
+  var state = { view:'recipe', cat:'all', stats:[], q:'', fav:false, ings:[], iceOpen: false, pcs:[], region:'all', food:'all' };
 
   function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function md(s){
@@ -1848,18 +1864,19 @@ var UNGC = (function () {
 
   /* ---------- ⚡ 초간단 (재료 5개 이하) · 정리 상태 (다중 선택 AND) ---------- */
   var STATOPTS = [
-    { k:'quick', t:'⚡ 초간단' },
-    { k:'done',  t:'정리 완료' },
-    { k:'video', t:'영상 필요' }
+    { k:'quick',     t:'⚡ 초간단' },
+    { k:'appliance', t:'🔌 렌지·에프' },
+    { k:'reviewed',  t:'💬 후기' }
   ];
+  function isAppliance(e){ return /(전자레인지|전자렌지|에어프라이어|에어프라이기|렌지|에프|오븐없이|노오븐)/.test(e._s); }
   function statOn(){ return state.stats.length > 0; }
   function statHas(k){ return state.stats.indexOf(k) >= 0; }
   function statMatch(e){
     for(var i = 0; i < state.stats.length; i++){
       var k = state.stats[i];
       if(k === 'quick'){ if(!(e.ic <= 5)) return false; }
-      else if(k === 'video'){ if(!e.v) return false; }
-      else if(k === 'done'){ if(e.v) return false; }
+      else if(k === 'appliance'){ if(!isAppliance(e)) return false; }
+      else if(k === 'reviewed'){ if(!(UNGC.count('r_' + e.n) > 0)) return false; }
     }
     return true;
   }
@@ -1893,8 +1910,27 @@ var UNGC = (function () {
     }
     return n;
   }
+  var iceBtn = document.getElementById('icebtn');
+  function updateIceBtn(){
+    if(!iceBtn) return;
+    iceBtn.hidden = (state.tab !== 'recipe');
+    var n = state.ings.length;
+    iceBtn.className = 'icebtn' + ((state.iceOpen || n > 0) ? ' on' : '');
+    iceBtn.setAttribute('aria-expanded', state.iceOpen ? 'true' : 'false');
+    iceBtn.textContent = '🧊 냉장고' + (n ? ' (' + n + ')' : '') + (state.iceOpen ? ' ▴' : ' ▾');
+  }
+  if(iceBtn){
+    iceBtn.addEventListener('click', function(){
+      state.iceOpen = !state.iceOpen;
+      updateIceBtn();
+      renderIceChips();
+    });
+  }
   function renderIceChips(){
+    updateIceBtn();
     if(!iceEl) return;
+    iceEl.hidden = (state.tab !== 'recipe' || !state.iceOpen);
+    if(iceEl.hidden) return;
     var html = '<span class="clab" aria-hidden="true">🧊 냉장고</span>' +
       '<button class="chip' + (!ingOn() ? ' on' : '') + '" type="button" data-ic="all" aria-pressed="' +
         (ingOn() ? 'false' : 'true') + '">전체</button>';
@@ -1929,6 +1965,7 @@ var UNGC = (function () {
     }
     var hc = document.getElementById('rcmh');
     if(hc) hc.textContent = UNGC.count('r_' + sheetN) + '개';
+    if(state.tab === 'recipe') renderStat();
   }
 
   var UNIT = '(?:g|kg|ml|mL|L|개|공기|컵|스푼|큰술|작은술|T|t|장|대|쪽|알|모|봉|캔|팩|줌|꼬집|인분|분|시간|cm|%|kcal)';
@@ -2007,8 +2044,10 @@ var UNGC = (function () {
   var statEl = document.getElementById('stat');
   var nVideo = D.filter(function(e){return e.v;}).length;
   var nQuick = D.filter(function(e){return e.ic <= 5;}).length;
+  var nAppliance = D.filter(isAppliance).length;
   function renderStat(){
-    var counts = { quick:nQuick, done:D.length-nVideo, video:nVideo };
+    var nRev = D.filter(function(e){return UNGC.count('r_' + e.n) > 0;}).length;
+    var counts = { quick:nQuick, appliance:nAppliance, reviewed:nRev };
     var html = '<button data-s="all" class="'+(statOn()?'':'on')+'" aria-pressed="'+(statOn()?'false':'true')+'">전체</button>';
     STATOPTS.forEach(function(o){
       var on = statHas(o.k);
@@ -3022,6 +3061,17 @@ var total = 0;
 
     if(e.m) h += '<div class="sec"><div class="sech">메모</div><div class="memo"><p>'+md(e.m)+'</p></div></div>';
 
+    h += '<div class="sec"><div class="sech">⏱️ 요리 타이머<span class="k" id="rtstat">대기</span></div>' +
+         '<div class="rtimer" id="rtimer"><span class="tdisp" id="rtdisp">00:00</span>' +
+         '<div class="tbtns">' +
+         '<button class="tb" type="button" data-tm="60">1분</button>' +
+         '<button class="tb" type="button" data-tm="180">3분</button>' +
+         '<button class="tb" type="button" data-tm="300">5분</button>' +
+         '<button class="tb" type="button" data-tm="600">10분</button>' +
+         '<button class="tb" type="button" data-tm="add60">+1분</button>' +
+         '<button class="tb go" type="button" data-tm="toggle" id="rttog">▶ 시작</button>' +
+         '<button class="tb" type="button" data-tm="reset">초기화</button>' +
+         '</div></div></div>';
     if(UNGC.enabled()){
       h += '<div class="sec"><div class="sech">💬 만들어봤어요<span class="k" id="rcmh">'+UNGC.count('r_'+e.n)+'개</span></div>'+
            UNGC.sectionHTML('r_'+e.n)+'</div>';
@@ -3272,6 +3322,65 @@ var total = 0;
 
   // init
   renderCats(); renderStat(); renderFavPill(); renderIceChips(); renderGrid(); renderRChips(); renderCChips();
+
+  /* ---------------- ⏱️ 상세 화면 미니 타이머 ---------------- */
+  var _tmSec = 0, _tmIv = null;
+  function _tmFmt(s){
+    var m = Math.floor(s / 60), r = s % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r;
+  }
+  function _tmBeep(){
+    try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
+    try{
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return;
+      var ctx = new AC();
+      [0, 0.25, 0.5].forEach(function(d){
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine'; o.frequency.value = 880;
+        g.gain.setValueAtTime(0.15, ctx.currentTime + d);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d + 0.18);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(ctx.currentTime + d); o.stop(ctx.currentTime + d + 0.18);
+      });
+    }catch(e){}
+  }
+  function _tmDraw(msg){
+    var d = document.getElementById('rtdisp'), box = document.getElementById('rtimer');
+    var st = document.getElementById('rtstat'), tg = document.getElementById('rttog');
+    if(d) d.textContent = _tmFmt(_tmSec);
+    if(tg) tg.textContent = _tmIv ? '⏸ 일시정지' : '▶ 시작';
+    if(st) st.textContent = msg || (_tmIv ? '진행 중' : (_tmSec > 0 ? '일시정지' : '대기'));
+    if(box) box.classList.toggle('done', msg === '⏰ 시간 끝!');
+  }
+  document.addEventListener('click', function(ev){
+    var btn = ev.target && ev.target.closest ? ev.target.closest('[data-tm]') : null;
+    if(!btn) return;
+    var act = btn.getAttribute('data-tm');
+    if(act === 'reset'){
+      if(_tmIv){ clearInterval(_tmIv); _tmIv = null; }
+      _tmSec = 0; _tmDraw('대기'); return;
+    }
+    if(act === 'toggle'){
+      if(_tmIv){ clearInterval(_tmIv); _tmIv = null; _tmDraw(); return; }
+      if(_tmSec <= 0) return;
+      _tmIv = setInterval(function(){
+        if(_tmSec > 0) _tmSec--;
+        if(_tmSec <= 0){
+          clearInterval(_tmIv); _tmIv = null;
+          _tmDraw('⏰ 시간 끝!'); _tmBeep();
+        }else{ _tmDraw(); }
+      }, 1000);
+      _tmDraw(); return;
+    }
+    if(act === 'add60'){ _tmSec += 60; _tmDraw(); return; }
+    var v = parseInt(act, 10);
+    if(v > 0){
+      if(_tmIv){ clearInterval(_tmIv); _tmIv = null; }
+      _tmSec = v; _tmDraw();
+    }
+  });
+
   if(UNGC.enabled()) UNGC.load(function(){ UNGC.refreshCounts(); });
 })();
 </script>
