@@ -1,0 +1,23 @@
+{
+  "name": "웅숑",
+  "short_name": "웅숑",
+  "description": "인스타 저장 요리 레시피 158건, 사진과 계량·조리법을 폰에서 바로 보는 레시피북",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FAF6F1",
+  "theme_color": "#FAF6F1",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
