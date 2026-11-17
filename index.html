@@ -390,12 +390,15 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
     qx.classList.toggle('on', !!q.value);
     clearTimeout(timer);
     timer = setTimeout(function(){
+      var wasSearch = !!norm(state.q);
       state.q = q.value.trim();
+      // 검색어를 지우면 카테고리는 다시 모두 접힌 상태로 돌아간다
+      if(wasSearch && !norm(state.q)) SECOPEN = {};
       if(state.view === 'recipe') renderGrid(); else renderPlaces();
     }, 90);
   });
   qx.addEventListener('click', function(){
-    q.value = ''; qx.classList.remove('on'); state.q = '';
+    q.value = ''; qx.classList.remove('on'); state.q = ''; SECOPEN = {};
     if(state.view === 'recipe') renderGrid(); else renderPlaces();
     q.focus();
   });
