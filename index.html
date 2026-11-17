@@ -551,6 +551,14 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
 .ctag.neg{color:#3D4E66;background:#EDF2F9;border-color:#CBD6E4}
 .ctag.mid{color:#7A5A2E;background:#FFF6E6;border-color:#F2DFBB}
 
+/* ---------- 💬 후기 상단 분리 탭 (가볼 곳 / 레시피) ---------- */
+.cmseg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 10px;padding:4px;border-radius:14px;background:#F3EBE1;border:1px solid #EAE0D2}
+.cmsegbtn{display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 10px;border-radius:10px;border:0;background:transparent;
+  font:inherit;font-size:12.5px;font-weight:850;color:#6E635A;cursor:pointer;touch-action:manipulation;transition:background .15s,color .15s}
+.cmsegbtn b{font-size:11px;font-weight:900;opacity:.75}
+.cmsegbtn.on{background:#fff;color:#2C2621;box-shadow:0 1px 4px rgba(44,38,33,.08)}
+.cmsegbtn.on b{color:#E1542E;opacity:1}
+
 /* ---------- 💬 후기 필터 줄 (전체·긍정·비추·애견동반·주차가능 5칩) ---------- */
 .cmfilt{margin:0 0 10px;padding:9px 10px 8px;border-radius:15px;background:#FFFDFA;border:1px solid #EFE4D6}
 .cmfiltrow{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:1px}
@@ -2525,6 +2533,7 @@ var total = 0;
   /* ================= 💬 후기 탭: 한 줄 후기 피드 ================= */
   var cmfeedEl = document.getElementById('cmfeed');
   var CMEDIT = null;                     /* {id:'p..', cid:'..'} 수정 중인 후기 */
+  var CMKIND = 'place';                  /* 후기 탭 분리: 'place' | 'recipe' */
   var CMNICK = '';                       /* 🏆 랭킹에서 고른 닉네임 필터 */
   var CMFILT = { keys: [] };             /* 후기 필터 다중 선택(AND): 'pos'|'neg'|태그키 */
   function cmfOn(){ return CMFILT.keys.length > 0; }
@@ -2652,7 +2661,7 @@ var total = 0;
   }
 
   /* 🏆 후기왕 랭킹 — 닉네임별 후기 수 Top 3 (요청함 __req__ 제외) */
-  function cmNickRank(){
+  function cmNickRank(kind){
     var map = {}, order = [];
     function addRank(id){
       var arr = UNGC.list(id);
@@ -2664,15 +2673,18 @@ var total = 0;
         map[nk]++;
       }
     }
-    PL.forEach(function(sec){
-      if(sec.k === 'folder') return;
-      sec.p.forEach(function(p){
-        var id = markId(p);
-        if(id === REQ_ID || id.indexOf('r_') === 0) return;
-        addRank(id);
+    if(kind === 'recipe'){
+      D.forEach(function(e){ addRank('r_' + e.n); });
+    } else {
+      PL.forEach(function(sec){
+        if(sec.k === 'folder') return;
+        sec.p.forEach(function(p){
+          var id = markId(p);
+          if(id === REQ_ID || id.indexOf('r_') === 0) return;
+          addRank(id);
+        });
       });
-    });
-    D.forEach(function(e){ addRank('r_' + e.n); });
+    }
     order.sort(function(a, b){ return (map[b] - map[a]) || (a < b ? -1 : a > b ? 1 : 0); });
     return order.map(function(nk){ return { n: nk, c: map[nk] }; });
   }
@@ -2718,11 +2730,13 @@ var total = 0;
     }
     return out;
   }
-  function cmFilterHTML(st){
-    var spec = [
+  function cmFilterHTML(st, kind){
+    var spec = (kind === 'recipe') ? [
       {k:'all', t:'전체', n:st.total, cls:'all'},
-      {k:'place', t:'📍 가볼 곳', n:st.place, cls:'all'},
-      {k:'recipe', t:'🍚 레시피', n:st.recipe, cls:'all'},
+      {k:'pos', t:'👍 긍정', n:st.pos, cls:'pos'},
+      {k:'neg', t:'👎 비추', n:st.neg, cls:'neg'}
+    ] : [
+      {k:'all', t:'전체', n:st.total, cls:'all'},
       {k:'pos', t:'👍 긍정', n:st.pos, cls:'pos'},
       {k:'neg', t:'👎 비추', n:st.neg, cls:'neg'},
       {k:'dog', t:'🐶 애견동반', n:st.dog, cls:'dog'},
@@ -2749,7 +2763,7 @@ var total = 0;
       h += '<button class="cmrankchip' + (on ? ' on' : '') + '" type="button" data-cmr="' + esc(top[i].n) + '"' +
         ' aria-pressed="' + (on ? 'true' : 'false') + '" title="' + esc(top[i].n) + ' 님 후기만 보기">' +
         '<span class="md" aria-hidden="true">' + MED[i] + '</span>' +
-        '<span class="nm">' + esc(top[i].n) + ' <b>' + top[i].c + '</b>곳</span></button>';
+        '<span class="nm">' + esc(top[i].n) + ' <b>' + top[i].c + '</b>' + (CMKIND === 'recipe' ? '개' : '곳') + '</span></button>';
     }
     h += '</div>';
     h += '<div class="cmranknote">' + (CMNICK
@@ -2771,12 +2785,21 @@ var total = 0;
       if(cnt) cnt.innerHTML = '';
       return;
     }
-    var allItems = cmFeedItems();
+    var rawItems = cmFeedItems();
+    var pCnt = 0, rCnt = 0, allItems = [];
+    for(var ri = 0; ri < rawItems.length; ri++){
+      if(rawItems[ri].kind === 'recipe'){ rCnt++; if(CMKIND === 'recipe') allItems.push(rawItems[ri]); }
+      else { pCnt++; if(CMKIND !== 'recipe') allItems.push(rawItems[ri]); }
+    }
     var stats = cmTagStats(allItems);
     var items = cmFilterItems(allItems);
-    var rank = cmNickRank();
-    var h = rankBannerHTML(rank);
-    if(allItems.length) h += cmFilterHTML(stats);
+    var rank = cmNickRank(CMKIND);
+    var h = '<div class="cmseg" role="tablist" aria-label="후기 종류">' +
+      '<button class="cmsegbtn' + (CMKIND !== 'recipe' ? ' on' : '') + '" type="button" data-cmk="place" aria-pressed="' + (CMKIND !== 'recipe' ? 'true' : 'false') + '">📍 가볼 곳 후기 <b>' + pCnt + '</b></button>' +
+      '<button class="cmsegbtn' + (CMKIND === 'recipe' ? ' on' : '') + '" type="button" data-cmk="recipe" aria-pressed="' + (CMKIND === 'recipe' ? 'true' : 'false') + '">🍚 레시피 후기 <b>' + rCnt + '</b></button>' +
+    '</div>';
+    h += rankBannerHTML(rank);
+    if(allItems.length) h += cmFilterHTML(stats, CMKIND);
     if(items.length){
       var fl = cmfOn() ? ' · ' + CMFILT.keys.map(cmfLabel).join(' + ') + '만' : '';
       h += '<div class="cmfeedhdr">' + (CMNICK ? '🏆 ' + esc(CMNICK) + ' 님 후기 ' : '💬 최근 후기 ') +
@@ -2789,7 +2812,7 @@ var total = 0;
         ? '🏆 ' + esc(CMNICK) + ' 님 후기가 아직 없어요.<br>칩을 다시 눌러 전체 후기를 봐 주세요.'
         : (norm(state.q)
           ? '찾는 후기가 없어요.<br>가게 이름이나 닉네임, 후기 내용을 다르게 적어 보세요.'
-          : '아직 한 줄 후기가 없어요.<br>📍 가볼 곳에서 가게를 열고 💬 후기를 남겨 보세요!')) + '</div>';
+          : (CMKIND === 'recipe' ? '아직 레시피 후기가 없어요.<br>🍚 레시피에서 요리를 열고 💬 만들어봤어요를 남겨 보세요!' : '아직 가볼 곳 후기가 없어요.<br>📍 가볼 곳에서 가게를 열고 💬 후기를 남겨 보세요!'))) + '</div>';
     }
     cmfeedEl.innerHTML = h;
     if(cnt) cnt.innerHTML = '<b>' + items.length + '</b>개의 후기';
@@ -2821,6 +2844,13 @@ var total = 0;
   if(cmfeedEl){
     cmfeedEl.addEventListener('click', function(ev){
       var el = ev.target;
+      var sk = el.closest ? el.closest('[data-cmk]') : null;
+      if(sk){
+        ev.preventDefault();
+        var nk = sk.getAttribute('data-cmk');
+        if(nk && nk !== CMKIND){ CMKIND = nk; CMFILT.keys = []; CMNICK = ''; renderCmFeed(); }
+        return;
+      }
       var nc = el.closest ? el.closest('[data-cmr]') : null;
       if(nc){ ev.preventDefault(); var nk = nc.getAttribute('data-cmr'); CMNICK = (CMNICK === nk) ? '' : nk; renderCmFeed(); return; }
       var fb = el.closest ? el.closest('[data-cmf]') : null;
