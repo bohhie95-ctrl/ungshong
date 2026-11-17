@@ -1276,7 +1276,7 @@ var UNGC = (function () {
   var CATS = [];
   D.forEach(function(e){ if(CATS.indexOf(e.c) < 0) CATS.push(e.c); });
 
-  var state = { view:'recipe', cat:'all', stat:'all', q:'', fav:false, pchip:'all', region:'all', food:'all' };
+  var state = { view:'recipe', cat:'all', stat:'all', q:'', fav:false, pcs:[], region:'all', food:'all' };
 
   function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function md(s){
@@ -1701,7 +1701,7 @@ var UNGC = (function () {
     var btns = placesEl.querySelectorAll('.mbtn[data-mk="'+id+'"]');
     for(var i=0;i<btns.length;i++) paintMarkBtn(btns[i]);
     renderPChips();
-    if(state.pchip === 'fav' || state.pchip === 'done') renderPlaces();
+    if(pcsHas('fav') || pcsHas('done')) renderPlaces();
   }
   function paintMarkBtn(b){
     var id = b.getAttribute('data-mk'), mk = MARKS[id] || {};
@@ -1942,6 +1942,10 @@ var UNGC = (function () {
   var CHIPBY = {};
   PCHIPS.forEach(function(c){ CHIPBY[c.k] = c; });
 
+  /* 원터치 칩은 다중 선택(AND) — state.pcs 에 켜진 키가 들어 있고, 비어 있으면 '전체' 상태다. */
+  function pcsOn(){ return !!(state.pcs && state.pcs.length > 0); }
+  function pcsHas(k){ return !!(state.pcs && state.pcs.indexOf(k) >= 0); }
+
   function placeText(p){
     return (p.name || '') + ' ' + (p.region || '') + ' ' + (p.desc || '');
   }
@@ -1989,6 +1993,13 @@ var UNGC = (function () {
     var t = placeText(p);
     for(var i=0;i<c.keys.length;i++){ if(t.indexOf(c.keys[i]) >= 0) return true; }
     return false;
+  }
+
+  /* 켜진 원터치 칩을 모두 만족하는 곳만 남긴다(AND). 켜진 칩이 없으면 전부 통과. */
+  function pchipsMatch(p){
+    var a = state.pcs || [];
+    for(var i = 0; i < a.length; i++){ if(!placeMatch(p, a[i])) return false; }
+    return true;
   }
 
   /* ---------- 🟢 영업중: 영업시간 문자열(m.h) 해석 ----------
@@ -2105,8 +2116,9 @@ var UNGC = (function () {
       var cls = 'chip';
       if(c.k === 'fav' || c.k === 'done') cls += ' mk';
       else if(c.keys) cls += ' area';
-      if(state.pchip === c.k) cls += ' on';
-      html += '<button class="'+cls+'" type="button" data-pc="'+c.k+'" aria-pressed="'+(state.pchip===c.k?'true':'false')+'">'+c.t+
+      var on = (c.k === 'all') ? !pcsOn() : pcsHas(c.k);
+      if(on) cls += ' on';
+      html += '<button class="'+cls+'" type="button" data-pc="'+c.k+'" aria-pressed="'+(on?'true':'false')+'">'+c.t+
         (c.k === 'all' ? '' : '<span class="c">'+counts[c.k]+'</span>')+'</button>';
     });
     pchipsEl.innerHTML = html;
@@ -2138,7 +2150,13 @@ var UNGC = (function () {
   pchipsEl.addEventListener('click', function(ev){
     var b = ev.target.closest('.chip'); if(!b) return;
     var k = b.getAttribute('data-pc');
-    state.pchip = (k === state.pchip && k !== 'all') ? 'all' : k;
+    if(k === 'all'){
+      state.pcs = [];                                   /* 전체: 켜진 조건을 모두 끈다 */
+    } else {
+      var i = state.pcs.indexOf(k);
+      if(i >= 0) state.pcs.splice(i, 1);                /* 켜진 조건 다시 누르면 끄기 */
+      else state.pcs.push(k);                           /* 여러 조건 동시 선택 가능 */
+    }
     renderPChips(); renderPlaces();
   });
 
@@ -2279,9 +2297,9 @@ var UNGC = (function () {
 
   var SECOPEN = {};
   function renderPlaces(){
-    var toks = qTokens(), ck = state.pchip, rk = state.region || 'all';
+    var toks = qTokens(), rk = state.region || 'all';
     var fk = state.food || 'all';
-    var on = toks.length > 0 || ck !== 'all' || rk !== 'all' || fk !== 'all';
+    var on = toks.length > 0 || pcsOn() || rk !== 'all' || fk !== 'all';
     empty.innerHTML = EMPTY_PLACE;
     var html = '';
 var total = 0;
@@ -2290,7 +2308,7 @@ var total = 0;
       /* 지역 칩을 고르면 장소(place) 섹션만 — 목록형 게시물은 지역 숫자에 안 들어가므로 같이 숨긴다 */
       if(sec.k !== 'place' && rk !== 'all') return;
       var rows = sec.p.filter(function(p){
-        if(!placeMatch(p, ck)) return false;
+        if(!pchipsMatch(p)) return false;
         if(!regionMatch(p, rk)) return false;
         if(!foodMatch(p, fk)) return false;
         if(!toks.length) return true;
@@ -2325,7 +2343,19 @@ var total = 0;
   var cmfeedEl = document.getElementById('cmfeed');
   var CMEDIT = null;                     /* {id:'p..', cid:'..'} 수정 중인 후기 */
   var CMNICK = '';                       /* 🏆 랭킹에서 고른 닉네임 필터 */
-  var CMFILT = { mode: 'all', tag: '' };  /* 후기 필터: all|pos|neg + 개별 태그 */
+  var CMFILT = { keys: [] };             /* 후기 필터 다중 선택(AND): 'pos'|'neg'|태그키 */
+  function cmfOn(){ return CMFILT.keys.length > 0; }
+  function cmfHas(k){ return CMFILT.keys.indexOf(k) >= 0; }
+  function cmfToggle(k){
+    var i = CMFILT.keys.indexOf(k);
+    if(i >= 0) CMFILT.keys.splice(i, 1); else CMFILT.keys.push(k);
+  }
+  /* 선택된 필터를 모두 만족하는 후기만(AND) — '👍 긍정'·'👎 비추'는 그 극성 태그를 하나라도 가진 후기 */
+  function cmfLabel(k){
+    if(k === 'pos') return '👍 긍정';
+    if(k === 'neg') return '👎 비추';
+    return esc(UNGC.tagLabel(k));
+  }
 
   /* 서버가 주는 작성일 문자열을 정렬용 숫자로 */
   function cmTs(d){
@@ -2438,13 +2468,21 @@ var total = 0;
     return st;
   }
   function cmFilterItems(items){
-    var mode = CMFILT.mode || 'all', tag = CMFILT.tag || '';
-    if(mode === 'all' && !tag) return items;
+    var a = CMFILT.keys;
+    if(!a.length) return items;
     var out = [];
     for(var i = 0; i < items.length; i++){
-      var tags = UNGC.parseTags(items[i].c.t).tags, ok = false;
-      if(tag) ok = tags.indexOf(tag) >= 0;
-      else for(var j = 0; j < tags.length; j++){ if(UNGC.pol(tags[j]) === mode){ ok = true; break; } }
+      var tags = UNGC.parseTags(items[i].c.t).tags, ok = true;
+      for(var j = 0; j < a.length && ok; j++){
+        var k = a[j];
+        if(k === 'pos' || k === 'neg'){
+          var hit = false;
+          for(var t = 0; t < tags.length; t++){ if(UNGC.pol(tags[t]) === k){ hit = true; break; } }
+          ok = hit;
+        } else {
+          ok = tags.indexOf(k) >= 0;
+        }
+      }
       if(ok) out.push(items[i]);
     }
     return out;
@@ -2457,7 +2495,7 @@ var total = 0;
     ], h = '';
     h += '<div class="cmfilt"><div class="cmfiltrow">';
     for(var i = 0; i < spec.length; i++){
-      var on = (!CMFILT.tag && (CMFILT.mode || 'all') === spec[i].k);
+      var on = (spec[i].k === 'all') ? !cmfOn() : cmfHas(spec[i].k);
       h += '<button class="cmfbtn ' + spec[i].cls + (on ? ' on' : '') + '" type="button" data-cmf="' + spec[i].k +
         '" aria-pressed="' + (on ? 'true' : 'false') + '">' + spec[i].t + ' <b>' + spec[i].n + '</b></button>';
     }
@@ -2468,7 +2506,7 @@ var total = 0;
       tags.sort(function(a, b){ return (st.byTag[b] - st.byTag[a]) || (a < b ? -1 : a > b ? 1 : 0); });
       h += '<div class="cmfiltrow tags">';
       for(var j = 0; j < tags.length; j++){
-        var tk = tags[j], ton = (CMFILT.tag === tk);
+        var tk = tags[j], ton = cmfHas(tk);
         h += '<button class="cmftag ' + UNGC.pol(tk) + (ton ? ' on' : '') + '" type="button" data-cmt="' + esc(tk) +
           '" aria-pressed="' + (ton ? 'true' : 'false') + '">' + esc(UNGC.tagLabel(tk)) + ' <b>' + st.byTag[tk] + '</b></button>';
       }
@@ -2518,9 +2556,7 @@ var total = 0;
     var h = rankBannerHTML(rank);
     if(allItems.length) h += cmFilterHTML(stats);
     if(items.length){
-      var fl = CMFILT.tag
-        ? ' · ' + esc(UNGC.tagLabel(CMFILT.tag)) + '만'
-        : (CMFILT.mode === 'pos' ? ' · 👍 긍정만' : (CMFILT.mode === 'neg' ? ' · 👎 비추만' : ''));
+      var fl = cmfOn() ? ' · ' + CMFILT.keys.map(cmfLabel).join(' + ') + '만' : '';
       h += '<div class="cmfeedhdr">' + (CMNICK ? '🏆 ' + esc(CMNICK) + ' 님 후기 ' : '💬 최근 후기 ') +
         '<b>' + items.length + '</b>개 · 최신순' + fl + '</div>';
       for(var i = 0; i < items.length; i++) h += cmCardHTML(items[i]);
@@ -2545,7 +2581,7 @@ var total = 0;
   function gotoPlaceFromFeed(id, name){
     state.q = name; if(q){ q.value = name; }
     if(qx) qx.classList.add('on');
-    state.region = 'all'; state.pchip = 'all';
+    state.region = 'all'; state.pcs = [];
     setView('place');
     renderPChips(); renderRChips(); renderCChips(); renderPlaces();
     var row = placesEl.querySelector('.prow[data-pl="' + id + '"]');
@@ -2569,16 +2605,15 @@ var total = 0;
       if(fb){
         ev.preventDefault();
         var mk = fb.getAttribute('data-cmf');
-        CMFILT.mode = (mk === 'all') ? 'all' : ((CMFILT.mode === mk && !CMFILT.tag) ? 'all' : mk);
-        CMFILT.tag = '';
+        if(mk === 'all') CMFILT.keys = [];      /* 전체: 필터 모두 해제 */
+        else cmfToggle(mk);                      /* 여러 개 동시 선택 */
         renderCmFeed(); return;
       }
       var ft = el.closest ? el.closest('[data-cmt]') : null;
       if(ft){
         ev.preventDefault();
         var tk2 = ft.getAttribute('data-cmt');
-        CMFILT.tag = (CMFILT.tag === tk2) ? '' : tk2;
-        CMFILT.mode = 'all';
+        cmfToggle(tk2);
         renderCmFeed(); return;
       }
       var stb = el.closest ? el.closest('.stamp') : null;
@@ -2662,7 +2697,7 @@ var total = 0;
     var open = !sec.classList.contains('open');
     sec.classList.toggle('open', open);
     head.setAttribute('aria-expanded', open ? 'true' : 'false');
-    if(!norm(state.q) && state.pchip === 'all' && (state.region || 'all') === 'all') SECOPEN[sec.getAttribute('data-s')] = open;
+    if(!norm(state.q) && !pcsOn() && (state.region || 'all') === 'all') SECOPEN[sec.getAttribute('data-s')] = open;
   });
 
   // ---------- view switch ----------
@@ -2677,10 +2712,10 @@ var total = 0;
     if(isC){
       /* 후기 탭: 검색어·지역 필터를 비우고 한 줄 후기 피드를 보여 준다 */
       if(q){ q.value = ''; if(qx) qx.classList.remove('on'); }
-      state.q = ''; state.region = 'all'; state.food = 'all'; SECOPEN = {}; state.pchip = 'all'; CMEDIT = null; CMNICK = '';
-      CMFILT.mode = 'all'; CMFILT.tag = '';
-    } else if(state.pchip === 'comment'){
-      state.pchip = 'all';
+      state.q = ''; state.region = 'all'; state.food = 'all'; SECOPEN = {}; state.pcs = []; CMEDIT = null; CMNICK = '';
+      CMFILT.keys = [];
+    } else if(pcsHas('comment')){
+      state.pcs = state.pcs.filter(function(k){ return k !== 'comment'; });
     }
     q.setAttribute('placeholder', isR ? '재료 여러 개로 찾기 (예: 스팸 계란)'
       : (isC ? '후기·가게·닉네임으로 찾기' : '장소·지역·주차·애견으로 찾기 (예: 연남 카페)'));
@@ -2971,11 +3006,11 @@ var total = 0;
 
   /* ---------- 🎲 오늘 어디 가지? ---------- */
   function filteredPlaceRows(){
-    var toks = qTokens(), ck = state.pchip, rk = state.region || 'all', out = [];
+    var toks = qTokens(), rk = state.region || 'all', out = [];
     PL.forEach(function(sec){
       if (sec.k !== 'place') return;
       sec.p.forEach(function(p){
-        if (!placeMatch(p, ck)) return;
+        if (!pchipsMatch(p)) return;
         if (!regionMatch(p, rk)) return;
         if (!foodMatch(p, state.food)) return;
         if (toks.length && !placeHasAll(p, sec, toks)) return;
