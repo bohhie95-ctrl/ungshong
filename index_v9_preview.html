@@ -2068,7 +2068,7 @@ var UNGC = (function () {
   }
   /* 한국 시각(Asia/Seoul) — 기기 시간대와 무관하게 UTC+9로 계산 */
   function kstNow(){
-    var t = new Date(Date.now() + new Date().getTimezoneOffset() * 60000 + 9 * 3600000);
+    var t = new Date(Date.now() + 9 * 3600000);    /* UTC+9 벽시계 → getUTC* 로 읽는다 */
     return { dow: t.getUTCDay(), min: t.getUTCHours() * 60 + t.getUTCMinutes() };
   }
   function hOpenAt(days, dow, min){
