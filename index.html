@@ -589,7 +589,7 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
 #rcchips .chip{font-size:11.5px;padding:5px 9px}
 #rcchips .chip .c{font-size:10.5px;margin-left:2px}
 /* 레시피 상태 칩(전체 · ⚡ 초간단 · 정리 완료 · 영상 필요) — 여러 개 동시 선택 */
-.bar .seg{flex:0 1 auto;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
+.bar .seg{flex:1 1 100%;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
   -webkit-overflow-scrolling:touch;white-space:nowrap}
 .bar .seg::-webkit-scrollbar{display:none}
 .bar .seg button{flex:0 0 auto}
@@ -607,7 +607,7 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
   <h1 class="brand">다정집</h1>
   <button class="herobtn req" id="reqbtn" type="button" aria-label="추가·수정 요청" title="추가·수정 요청"><span class="em">🙋‍♀️</span> 요청</button>
   <button class="herobtn" id="bkbtn" type="button" aria-label="찜·다녀옴 백업/복원" title="찜·다녀옴 백업/복원">💾</button>
-  <div class="stats"><b>레시피 202</b> · 사진 202 · 가볼 곳 1445</div>
+  <div class="stats"><b>레시피 202</b> · 가볼 곳 1445</div>
 </header>
 
 <div class="bar">
@@ -1866,8 +1866,21 @@ var UNGC = (function () {
   var STATOPTS = [
     { k:'quick',     t:'⚡ 초간단' },
     { k:'appliance', t:'🔌 렌지·에프' },
-    { k:'reviewed',  t:'💬 후기' }
+    { k:'reviewed',  t:'💬 후기' },
+    { k:'pos',       t:'👍 긍정' },
+    { k:'neg',       t:'👎 비추' }
   ];
+  function recipeHasPol(e, pol){
+    var arr = UNGC.list('r_' + e.n);
+    if(!arr || !arr.length) return false;
+    for(var i = 0; i < arr.length; i++){
+      var tags = UNGC.parseTags((arr[i] && arr[i].t) || '').tags;
+      for(var j = 0; j < tags.length; j++){
+        if(UNGC.pol(tags[j]) === pol) return true;
+      }
+    }
+    return false;
+  }
   function isAppliance(e){ return /(전자레인지|전자렌지|에어프라이어|에어프라이기|렌지|에프|오븐없이|노오븐)/.test(e._s); }
   function statOn(){ return state.stats.length > 0; }
   function statHas(k){ return state.stats.indexOf(k) >= 0; }
@@ -1877,6 +1890,8 @@ var UNGC = (function () {
       if(k === 'quick'){ if(!(e.ic <= 5)) return false; }
       else if(k === 'appliance'){ if(!isAppliance(e)) return false; }
       else if(k === 'reviewed'){ if(!(UNGC.count('r_' + e.n) > 0)) return false; }
+      else if(k === 'pos'){ if(!recipeHasPol(e, 'pos')) return false; }
+      else if(k === 'neg'){ if(!recipeHasPol(e, 'neg')) return false; }
     }
     return true;
   }
@@ -1957,6 +1972,7 @@ var UNGC = (function () {
   /* 카드 썸네일 💬 후기 배지 — 후기를 불러온 뒤 숫자를 채운다 */
   function refreshRcm(){
     if(!UNGC.enabled()) return;
+    if(state.tab === 'recipe') renderStat();
     var els = document.querySelectorAll('.rcmb');
     for(var i = 0; i < els.length; i++){
       var n = UNGC.count(els[i].getAttribute('data-rcm'));
@@ -2046,8 +2062,14 @@ var UNGC = (function () {
   var nQuick = D.filter(function(e){return e.ic <= 5;}).length;
   var nAppliance = D.filter(isAppliance).length;
   function renderStat(){
-    var nRev = D.filter(function(e){return UNGC.count('r_' + e.n) > 0;}).length;
-    var counts = { quick:nQuick, appliance:nAppliance, reviewed:nRev };
+    var nRev = 0, nPos = 0, nNeg = 0;
+    for(var i = 0; i < D.length; i++){
+      var e = D[i];
+      if(UNGC.count('r_' + e.n) > 0) nRev++;
+      if(recipeHasPol(e, 'pos')) nPos++;
+      if(recipeHasPol(e, 'neg')) nNeg++;
+    }
+    var counts = { quick:nQuick, appliance:nAppliance, reviewed:nRev, pos:nPos, neg:nNeg };
     var html = '<button data-s="all" class="'+(statOn()?'':'on')+'" aria-pressed="'+(statOn()?'false':'true')+'">전체</button>';
     STATOPTS.forEach(function(o){
       var on = statHas(o.k);
@@ -2059,10 +2081,9 @@ var UNGC = (function () {
   statEl.addEventListener('click', function(ev){
     var b = ev.target.closest('button'); if(!b) return;
     var k = b.getAttribute('data-s');
-    if(k === 'all'){ state.stats = []; }                 /* 전체: 켜진 상태 조건을 모두 끈다 */
+    if(k === 'all'){ state.stats = []; }                 /* 전체: 켜진 상태 조건을 끈다 */
     else {
-      var i = state.stats.indexOf(k);
-      if(i >= 0) state.stats.splice(i, 1); else state.stats.push(k);   /* 여러 개 동시 선택 */
+      state.stats = (state.stats[0] === k) ? [] : [k];   /* 한 번에 하나만 선택 */
     }
     renderStat(); renderGrid();
   });
