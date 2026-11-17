@@ -552,7 +552,7 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
 .ctag.mid{color:#7A5A2E;background:#FFF6E6;border-color:#F2DFBB}
 
 /* ---------- 💬 후기 상단 분리 탭 (가볼 곳 / 레시피) ---------- */
-.cmseg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 10px;padding:4px;border-radius:14px;background:#F3EBE1;border:1px solid #EAE0D2}
+.cmseg{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 10px;padding:4px;border-radius:14px;background:#F3EBE1;border:1px solid #EAE0D2}
 .cmsegbtn{display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 10px;border-radius:10px;border:0;background:transparent;
   font:inherit;font-size:12.5px;font-weight:850;color:#6E635A;cursor:pointer;touch-action:manipulation;transition:background .15s,color .15s}
 .cmsegbtn b{font-size:11px;font-weight:900;opacity:.75}
@@ -1873,7 +1873,7 @@ var UNGC = (function () {
   var STATOPTS = [
     { k:'quick',     t:'⚡ 초간단' },
     { k:'appliance', t:'🔌 렌지·에프' },
-    { k:'reviewed',  t:'💬 후기' }
+    { k:'stove',     t:'🔥 가스·팬' }
   ];
   function recipeHasPol(e, pol){
     var arr = UNGC.list('r_' + e.n);
@@ -1887,6 +1887,7 @@ var UNGC = (function () {
     return false;
   }
   function isAppliance(e){ return /(전자레인지|전자렌지|에어프라이어|에어프라이기|렌지|에프|오븐없이|노오븐)/.test(e._s); }
+  function isStove(e){ return /(프라이팬|후라이팬|팬에|팬으로|냄비|끓|볶|굽|구워|삶|찌|찜|조림|전골|찌개|중불|약불|강불|가스|인덕션|불에|불을)/.test(e._s); }
   function statOn(){ return state.stats.length > 0; }
   function statHas(k){ return state.stats.indexOf(k) >= 0; }
   function statMatch(e){
@@ -1894,7 +1895,7 @@ var UNGC = (function () {
       var k = state.stats[i];
       if(k === 'quick'){ if(!(e.ic <= 5)) return false; }
       else if(k === 'appliance'){ if(!isAppliance(e)) return false; }
-      else if(k === 'reviewed'){ if(!(UNGC.count('r_' + e.n) > 0)) return false; }
+      else if(k === 'stove'){ if(!isStove(e)) return false; }
       else if(k === 'pos'){ if(!recipeHasPol(e, 'pos')) return false; }
       else if(k === 'neg'){ if(!recipeHasPol(e, 'neg')) return false; }
     }
@@ -2065,9 +2066,9 @@ var UNGC = (function () {
   var nVideo = D.filter(function(e){return e.v;}).length;
   var nQuick = D.filter(function(e){return e.ic <= 5;}).length;
   var nAppliance = D.filter(isAppliance).length;
+  var nStove = D.filter(isStove).length;
   function renderStat(){
-    var nRev = D.filter(function(e){return UNGC.count('r_' + e.n) > 0;}).length;
-    var counts = { quick:nQuick, appliance:nAppliance, reviewed:nRev };
+    var counts = { quick:nQuick, appliance:nAppliance, stove:nStove };
     var html = '<button data-s="all" class="'+(statOn()?'':'on')+'" aria-pressed="'+(statOn()?'false':'true')+'">전체</button>';
     STATOPTS.forEach(function(o){
       var on = statHas(o.k);
@@ -2960,7 +2961,7 @@ var total = 0;
       /* 후기 탭: 검색어·지역 필터를 비우고 한 줄 후기 피드를 보여 준다 */
       if(q){ q.value = ''; if(qx) qx.classList.remove('on'); }
       state.q = ''; state.region = 'all'; state.food = 'all'; SECOPEN = {}; state.pcs = []; CMEDIT = null; CMNICK = '';
-      CMFILT.keys = [];
+      CMFILT.keys = []; window.scrollTo(0, 0);
     } else if(pcsHas('comment')){
       state.pcs = state.pcs.filter(function(k){ return k !== 'comment'; });
     }
