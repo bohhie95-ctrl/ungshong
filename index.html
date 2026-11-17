@@ -351,16 +351,20 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
 .bar{border-top:1px solid transparent}
 .bar .sbox{height:34px;border-radius:11px}
 .bar .chips{margin:4px -12px 0;gap:5px;padding:0 12px 1px}
-/* 지역 칩은 스와이프 대신 여러 줄로 펼쳐 모바일에서도 한눈에 보이게 (v8) */
-.bar #rchips{flex-wrap:wrap;overflow-x:visible;overflow-y:visible;gap:5px 6px;margin:6px 0 0;
-  padding:0 0 1px;scroll-behavior:auto}
-.bar #rchips .clab{padding-right:0}
-.bar #rchips .chip{font-size:11.5px;padding:5px 8px}
-.bar #rchips .chip .c{font-size:10.5px;margin-left:2px}
+/* v9: 지역 칩은 1줄 가로 스와이프로 원복, 바로 아래 줄에 대표음식 카테고리 칩 */
+.bar #rchips,.bar #cchips{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:5px 6px;margin:5px -12px 0;
+  padding:0 12px 2px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.bar #rchips::-webkit-scrollbar,.bar #cchips::-webkit-scrollbar{display:none}
+.bar #rchips .clab,.bar #cchips .clab{flex:0 0 auto;padding-right:0}
+.bar #rchips .chip,.bar #cchips .chip{flex:0 0 auto;font-size:11.5px;padding:5px 8px}
+.bar #rchips .chip .c,.bar #cchips .chip .c{font-size:10.5px;margin-left:2px}
+.bar #cchips .chip{font-weight:750}
+.bar #cchips .chip.on{background:#2A2118;border-color:#2A2118;color:#FFF6E8}
+.bar #cchips .chip.on .c{color:#FFD08A}
 @media(max-width:379px){
-  .bar #rchips{gap:4px 5px}
-  .bar #rchips .chip{font-size:11px;padding:4px 6px}
-  .bar #rchips .chip .c{font-size:10px;margin-left:1px}
+  .bar #rchips,.bar #cchips{gap:4px 5px}
+  .bar #rchips .chip,.bar #cchips .chip{font-size:11px;padding:4px 6px}
+  .bar #rchips .chip .c,.bar #cchips .chip .c{font-size:10px;margin-left:1px}
 }
 .bar .chip{padding:3px 9px;font-size:11.5px}
 .bar .subrow{padding:2px 1px 0;min-height:16px}
@@ -535,6 +539,45 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
 .cmeditbox .cetop{display:flex;gap:6px;align-items:center;flex:1 1 100%}
 .cmeditbox .cetop input{flex:1;min-width:0}
 
+/* ---------- 🏷️ 스탬프 태그: 긍정 · 참고/편의 · 부정 색 구분 (v9) ---------- */
+.stamp.st-pos{color:#9A4A22;border-color:#F2D2C1;background:#FFF9F5}
+.stamp.st-pos.on{background:#FFE9DC;border-color:var(--accent);color:#A83C12}
+.stamp.st-mid{color:#6E5A3A;border-color:#E7DCC8;background:#FDFAF3}
+.stamp.st-mid.on{background:#F6EEDD;border-color:#C9AE80;color:#6B4F22}
+.stamp.st-neg{color:#4C5A6E;border-color:#D9E0EA;background:#F8FAFD}
+.stamp.st-neg.on{background:#E3EAF4;border-color:#7E94B2;color:#33455C}
+.stamp.st-neg.on:active{background:#D8E2F0}
+.ctag.pos{color:#B8431F;background:#FFF1EA;border-color:#F6CDBC}
+.ctag.neg{color:#3D4E66;background:#EDF2F9;border-color:#CBD6E4}
+.ctag.mid{color:#7A5A2E;background:#FFF6E6;border-color:#F2DFBB}
+
+/* ---------- 💬 후기 필터 줄 (전체·긍정·비추·태그) ---------- */
+.cmfilt{margin:0 0 10px;padding:9px 10px 8px;border-radius:15px;background:#FFFDFA;border:1px solid #EFE4D6}
+.cmfiltrow{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:1px}
+.cmfiltrow::-webkit-scrollbar{display:none}
+.cmfiltrow.tags{margin-top:7px;padding-top:7px;border-top:1px dashed #EFE4D6}
+.cmfbtn{flex:0 0 auto;font:inherit;font-size:12px;font-weight:850;color:#6E635A;background:#fff;
+  border:1px solid #E7DCCF;border-radius:999px;padding:6px 11px;white-space:nowrap;cursor:pointer;
+  touch-action:manipulation;-webkit-tap-highlight-color:rgba(225,84,46,.12)}
+.cmfbtn b{font-weight:900;font-variant-numeric:tabular-nums;color:var(--accent)}
+.cmfbtn.neg b{color:#3D4E66}
+.cmfbtn.on{background:#2A2118;border-color:#2A2118;color:#FFF6E8}
+.cmfbtn.on b{color:#FFD08A}
+.cmftag{flex:0 0 auto;font:inherit;font-size:11.5px;font-weight:800;color:#6E5A4A;background:#fff;
+  border:1px solid #E7DCCF;border-radius:999px;padding:5px 9px;white-space:nowrap;cursor:pointer;
+  touch-action:manipulation}
+.cmftag b{font-weight:900;opacity:.6;margin-left:1px}
+.cmftag.pos{color:#B8431F;border-color:#F6CDBC;background:#FFF7F2}
+.cmftag.neg{color:#3D4E66;border-color:#CBD6E4;background:#F5F8FC}
+.cmftag.on{background:#2A2118;border-color:#2A2118;color:#FFF6E8}
+.cmftag.on b{opacity:.8;color:#FFD08A}
+
+/* ---------- 🟢 영업중 조건 칩 ---------- */
+#pchips .chip[data-pc="open"]{color:#1F7A4D;border-color:#CFE6DA;background:#F4FBF7}
+#pchips .chip[data-pc="open"] .c{opacity:.55}
+#pchips .chip[data-pc="open"].on{background:#1F7A4D;border-color:#1F7A4D;color:#fff}
+#pchips .chip[data-pc="open"].on .c{color:#D8F0E3;opacity:.9}
+
 /* --- 토스트 --- */
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 74px);transform:translate(-50%,12px);
   max-width:86vw;padding:9px 14px;border-radius:999px;background:rgba(34,28,24,.94);color:#fff;
@@ -562,6 +605,7 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
     <button id="qx" aria-label="검색어 지우기">✕</button>
   </div>
   <div class="chips" id="rchips" hidden></div>
+  <div class="chips" id="cchips" hidden></div>
   <div class="chips" id="pchips" hidden></div>
   <div class="chips" id="cats"></div>
   <div class="subrow">
@@ -613,15 +657,21 @@ var UNGC = (function () {
      서버 스키마는 건드리지 않는다: 고른 태그를 본문 끝에 [#재방문각] 같은 규격 토큰으로 붙여
      기존 text 필드에 그대로 저장하고, 화면에서만 토큰을 떼어 알약 배지로 그린다. */
   var STAMPS = [
-    { k: '재방문각',    e: '👍', t: '재방문 각' },
-    { k: '웨이팅있음',  e: '⏳', t: '웨이팅 있음' },
-    { k: '분위기짱',    e: '✨', t: '분위기 짱' },
-    { k: '가성비',      e: '💸', t: '가성비' },
-    { k: '댕댕이환영',  e: '🐶', t: '댕댕이 환영' },
-    { k: '주차편함',    e: '🚗', t: '주차 편함' }
+    { k: '재방문각',    e: '👍', t: '재방문 각',      p: 'pos' },
+    { k: '분위기짱',    e: '✨', t: '분위기 짱',      p: 'pos' },
+    { k: '가성비',      e: '💸', t: '가성비',        p: 'pos' },
+    { k: '웨이팅있음',  e: '⏳', t: '웨이팅 있음',    p: 'mid' },
+    { k: '댕댕이환영',  e: '🐶', t: '댕댕이 환영',    p: 'mid' },
+    { k: '주차편함',    e: '🚗', t: '주차 편함',      p: 'mid' },
+    { k: '비추',        e: '👎', t: '비추',          p: 'neg' },
+    { k: '가성비아쉬움', e: '😅', t: '가성비 아쉬움',  p: 'neg' },
+    { k: '재방문글쎄',  e: '🙅‍♀️', t: '재방문 글쎄',  p: 'neg' }
   ];
   var STAMPBY = {};
   (function () { for (var i = 0; i < STAMPS.length; i++) STAMPBY[STAMPS[i].k] = STAMPS[i]; })();
+  /* 태그 성격: pos(긍정) · mid(참고/편의) · neg(부정/아쉬움) */
+  function polOf(k) { var s = STAMPBY[k]; return s ? (s.p || 'mid') : 'mid'; }
+  function tagLabel(k) { var s = STAMPBY[k]; return s ? (s.e + ' ' + s.t) : ('🏷 ' + k); }
 
   function tokRe() { return /\[#([^\]\s]{1,16})\]/g; }
   /* '본문 [#태그] [#태그]' → { body:'본문', tags:['태그','태그'] } */
@@ -647,7 +697,7 @@ var UNGC = (function () {
     var h = '';
     for (var i = 0; i < tags.length; i++) {
       var st = STAMPBY[tags[i]];
-      h += '<span class="ctag">' + (st ? st.e + ' ' + esc(st.t) : '🏷 ' + esc(tags[i])) + '</span>';
+      h += '<span class="ctag ' + polOf(tags[i]) + '">' + (st ? st.e + ' ' + esc(st.t) : '🏷 ' + esc(tags[i])) + '</span>';
     }
     return '<span class="ctags">' + h + '</span>';
   }
@@ -657,7 +707,7 @@ var UNGC = (function () {
     var h = '<div class="stampwrap" role="group" aria-label="스탬프 태그">';
     for (var i = 0; i < STAMPS.length; i++) {
       var st = STAMPS[i], o = !!on[st.k];
-      h += '<button class="stamp' + (o ? ' on' : '') + '" type="button" data-st="' + st.k + '" aria-pressed="' +
+      h += '<button class="stamp st-' + (st.p || 'mid') + (o ? ' on' : '') + '" type="button" data-st="' + st.k + '" aria-pressed="' +
         (o ? 'true' : 'false') + '">' + st.e + ' ' + st.t + '</button>';
     }
     return h + '</div>';
@@ -1191,6 +1241,7 @@ var UNGC = (function () {
     refreshCounts: refreshCounts, fmtDate: fmtDate, loaded: function () { return !!loadedAt; },
     parseTags: parseTags, compose: compose, badges: badges, stampButtonsHTML: stampButtonsHTML,
     toggleStamp: toggleStamp, readStamps: readStamps, resetStamps: resetStamps, STAMPS: STAMPS,
+    pol: polOf, tagLabel: tagLabel,
     _MAX: { n: MAXN, t: MAXT }
   };
 })();
@@ -1225,7 +1276,7 @@ var UNGC = (function () {
   var CATS = [];
   D.forEach(function(e){ if(CATS.indexOf(e.c) < 0) CATS.push(e.c); });
 
-  var state = { view:'recipe', cat:'all', stat:'all', q:'', fav:false, pchip:'all', region:'all' };
+  var state = { view:'recipe', cat:'all', stat:'all', q:'', fav:false, pchip:'all', region:'all', food:'all' };
 
   function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function md(s){
@@ -1266,6 +1317,19 @@ var UNGC = (function () {
   ];
   var RCHIPBY = {};
   RCHIPS.forEach(function(c){ RCHIPBY[c.k] = c; });
+
+  /* 대표음식 카테고리 칩 — 📍 가볼 곳 2번째 줄. 지역 칩·조건 칩과 AND로 함께 걸린다 */
+  var CCHIPS = [
+    {k:'all',      t:'전체'},
+    {k:'korean',   t:'한식'},
+    {k:'meat',     t:'고기·구이'},
+    {k:'japanese', t:'일식'},
+    {k:'western',  t:'양식'},
+    {k:'asian',    t:'중식·아시안'},
+    {k:'bunsik',   t:'분식'},
+    {k:'cafe',     t:'카페·디저트'},
+    {k:'pub',      t:'술집·안주'}
+  ];
   /* 지역 머리말의 시·도 접두를 먼저 본다 — '경기 광주'(경기도 광주시)와 '광주 동구'(광주광역시)를 섞지 않는다 */
   var SIDO_RE = [
     ['seoul',        /^서울/],
@@ -1314,6 +1378,22 @@ var UNGC = (function () {
     if (!k || k === 'all') return true;
     return regionKey(p) === k;
   }
+
+  /* place._lb(대표메뉴 라벨) → 대표음식 카테고리. '데이트·체험'처럼 음식이 아닌 라벨은 어느 칩에도 넣지 않는다 */
+  var FOODCAT = {
+    '한식·백반':'korean','국밥·탕':'korean','국수·냉면':'korean','찜·조림':'korean',
+    '감자탕·뼈해장국':'korean','족발·보쌈':'korean','닭요리':'korean','쌈밥·쌈':'korean',
+    '두부요리':'korean','무한리필·뷔페':'korean','해산물·회':'korean',
+    '고기구이':'meat','곱창·대창':'meat','샤브샤브':'meat','치킨':'meat',
+    '일식':'japanese','라멘':'japanese',
+    '양식·파스타':'western','버거·피자':'western','브런치·샌드위치':'western',
+    '마라·중식':'asian','쌀국수·베트남':'asian','중동·이슬람':'asian',
+    '분식·떡볶이':'bunsik',
+    '카페':'cafe','베이커리·디저트':'cafe',
+    '술집·안주':'pub','전·막걸리':'pub'
+  };
+  function foodCat(p){ return FOODCAT[(p && p._lb) || ''] || ''; }
+  function foodMatch(p, k){ return (!k || k === 'all') ? true : (foodCat(p) === k); }
 
   /* ---------- 토스트 · 클립보드 ---------- */
   var toastEl = document.getElementById('toast'), toastT = null;
@@ -1853,6 +1933,7 @@ var UNGC = (function () {
      동네 칩은 지역 표기가 '서울 성동·성수', '성수이로 118'처럼 제각각이라 키워드로 묶었다. */
   var PCHIPS = [
     {k:'all',      t:'전체'},
+    {k:'open',     t:'🟢 영업중'},
     {k:'fav',      t:'♡ 찜',        mk:'f'},
     {k:'done',     t:'✓ 다녀옴',    mk:'d'},
     {k:'pk',       t:'주차가능'},
@@ -1891,6 +1972,7 @@ var UNGC = (function () {
     if(ck === 'fav') return !!markOf(p).f;
     if(ck === 'done') return !!markOf(p).d;
     if(ck === 'comment') return commentCount(p) > 0;
+    if(ck === 'open') return isOpenNow(p);
     if(ck === 'pk'){
       if(m.pk === 1) return true;
       if(m.pk === 0) return false;
@@ -1908,6 +1990,103 @@ var UNGC = (function () {
     for(var i=0;i<c.keys.length;i++){ if(t.indexOf(c.keys[i]) >= 0) return true; }
     return false;
   }
+
+  /* ---------- 🟢 영업중: 영업시간 문자열(m.h) 해석 ----------
+     표기 예) '11:00~21:00' · '24시간' · '월 휴무, 화~일 11:30~21:00'
+              '월·수·목 17:00~02:00, 금·토 17:00~03:00' · '15:00~24:00 (토·일 13:00~23:00)'
+     요일별 영업 구간으로 바꾼 뒤 지금(KST) 열었는지 본다. 브레이크·라스트오더는 제외,
+     해석할 수 없는 표기(미등록·확인필요 포함)는 '영업중'에서 뺀다. */
+  var HD = '일월화수목금토';                 /* 일=0 … 토=6 */
+  function hAllDays(){ return [0,1,2,3,4,5,6]; }
+  function hDaySet(spec){
+    var s = String(spec || '');
+    if(/매일|연중무휴/.test(s)) return hAllDays();
+    if(/평일/.test(s)) return [1,2,3,4,5];
+    if(/주말/.test(s)) return [0,6];
+    var out = [], m, re = /([일월화수목금토])\s*~\s*([일월화수목금토])/g;
+    while((m = re.exec(s))){
+      var a = HD.indexOf(m[1]), b = HD.indexOf(m[2]), k = a, guard = 0;
+      while(a >= 0 && b >= 0){
+        if(out.indexOf(k) < 0) out.push(k);
+        if(k === b || ++guard > 7) break;
+        k = (k + 1) % 7;
+      }
+    }
+    s = s.replace(/([일월화수목금토])\s*~\s*([일월화수목금토])/g, ' ');
+    for(var i = 0; i < s.length; i++){
+      var d = HD.indexOf(s.charAt(i));
+      if(d >= 0 && out.indexOf(d) < 0) out.push(d);
+    }
+    return out.length ? out : null;
+  }
+  function hParse(h){
+    var s = String(h == null ? '' : h).replace(/\s+/g, ' ').trim();
+    if(!s) return null;
+    var days = [null,null,null,null,null,null,null], parents = [], any = false;
+    var main = s.replace(/\(([^)]*)\)/g, function(_, inner){ parents.push(inner); return ' '; });
+    function apply(cl, override){
+      cl = String(cl || '').replace(/\s+/g, ' ').trim();
+      if(!cl) return;
+      if(/브레이크|라스트/.test(cl)) return;          /* 쉬는 구간은 영업 판정에서 뺀다 */
+      var tm = cl.match(/(\d{1,2}):(\d{2})\s*~\s*(\d{1,2}):(\d{2})/);
+      if(/24\s*시간/.test(cl) && !tm){
+        var ds0 = hDaySet(cl.replace(/24\s*시간/g, ' ')) || hAllDays();
+        for(var a0 = 0; a0 < ds0.length; a0++){ days[ds0[a0]] = [[0, 1440]]; any = true; }
+        return;
+      }
+      if(/휴무/.test(cl)){
+        var ds1 = hDaySet(cl.replace(/휴무/g, ' ')) || hAllDays();
+        for(var a1 = 0; a1 < ds1.length; a1++){ days[ds1[a1]] = []; any = true; }
+        return;
+      }
+      if(!tm) return;
+      var st = (+tm[1]) * 60 + (+tm[2]), en = (+tm[3]) * 60 + (+tm[4]);
+      var ds2 = hDaySet(cl.replace(tm[0], ' ')) || hAllDays();
+      for(var a2 = 0; a2 < ds2.length; a2++){
+        var d = ds2[a2];
+        if(override || days[d] === null) days[d] = [[st, en]];
+        else days[d] = days[d].concat([[st, en]]);   /* 브레이크로 나뉜 하루 두 구간 */
+        any = true;
+      }
+    }
+    var parts = main.split(',');
+    for(var i = 0; i < parts.length; i++) apply(parts[i], false);
+    for(var j = 0; j < parents.length; j++){          /* '(...)'는 그 요일만 덮어쓴다 */
+      var sub = parents[j].split(',');
+      for(var k = 0; k < sub.length; k++) apply(sub[k], true);
+    }
+    if(!any) return null;
+    for(var z = 0; z < 7; z++) if(days[z] === null) days[z] = [];
+    return days;
+  }
+  function hParseCached(p){
+    var h = (p && p.m) ? String(p.m.h || '') : '';
+    if(p && p._hk === h && p._hv !== undefined) return p._hv;
+    var v = hParse(h);
+    if(p){ p._hk = h; p._hv = v; }
+    return v;
+  }
+  /* 한국 시각(Asia/Seoul) — 기기 시간대와 무관하게 UTC+9로 계산 */
+  function kstNow(){
+    var t = new Date(Date.now() + 9 * 3600000);    /* UTC+9 벽시계 → getUTC* 로 읽는다 */
+    return { dow: t.getUTCDay(), min: t.getUTCHours() * 60 + t.getUTCMinutes() };
+  }
+  function hOpenAt(days, dow, min){
+    if(!days) return false;
+    var i, a, b, r = days[dow] || [];
+    for(i = 0; i < r.length; i++){
+      a = r[i][0]; b = r[i][1];
+      if(b > a){ if(min >= a && min < b) return true; }
+      else if(min >= a) return true;                  /* 17:00~02:00 처럼 자정 넘김 */
+    }
+    var y = days[(dow + 6) % 7] || [];                /* 어제 시작해 자정을 넘긴 구간 */
+    for(i = 0; i < y.length; i++){
+      a = y[i][0]; b = y[i][1];
+      if(b <= a && min < b) return true;
+    }
+    return false;
+  }
+  function isOpenNow(p){ var n = kstNow(); return hOpenAt(hParseCached(p), n.dow, n.min); }
 
   var pchipsEl = document.getElementById('pchips');
   function renderPChips(){
@@ -1993,6 +2172,35 @@ var UNGC = (function () {
     renderRChips(); renderPlaces();
   });
 
+  /* ---------- 대표음식 카테고리 칩 그리기 (📍 가볼 곳 2번째 줄) ---------- */
+  var cchipsEl = document.getElementById('cchips');
+  function renderCChips(){
+    if (!cchipsEl) return;
+    var all = [];
+    PL.forEach(function(sec){ if (sec.k !== 'place') return; all = all.concat(sec.p); });
+    var counts = {};
+    all.forEach(function(p){ var k = foodCat(p); if (k) counts[k] = (counts[k] || 0) + 1; });
+    var html = '<span class="clab" aria-hidden="true">음식</span>';
+    CCHIPS.forEach(function(c){
+      var n = (c.k === 'all') ? all.length : (counts[c.k] || 0);
+      if (c.k !== 'all' && n === 0) return;            /* 0건 카테고리는 칩을 만들지 않는다 */
+      html += '<button class="chip' + (state.food === c.k ? ' on' : '') + '" type="button" data-fc="' + c.k +
+        '" aria-pressed="' + (state.food === c.k ? 'true' : 'false') + '">' + c.t +
+        '<span class="c">' + n + '</span></button>';
+    });
+    cchipsEl.innerHTML = html;
+    var onEl = cchipsEl.querySelector('.chip.on');
+    if (onEl && cchipsEl.scrollWidth > cchipsEl.clientWidth) {
+      try { cchipsEl.scrollLeft = Math.max(0, onEl.offsetLeft - 60); } catch (e) {}
+    }
+  }
+  if (cchipsEl) cchipsEl.addEventListener('click', function(ev){
+    var b = ev.target.closest('.chip'); if (!b) return;
+    var k = b.getAttribute('data-fc');
+    state.food = (k === state.food && k !== 'all') ? 'all' : k;
+    renderCChips(); renderPlaces();
+  });
+
   function metaHTML(p){
     var m = p.m || {};
     var b = '';
@@ -2072,7 +2280,8 @@ var UNGC = (function () {
   var SECOPEN = {};
   function renderPlaces(){
     var toks = qTokens(), ck = state.pchip, rk = state.region || 'all';
-    var on = toks.length > 0 || ck !== 'all' || rk !== 'all';
+    var fk = state.food || 'all';
+    var on = toks.length > 0 || ck !== 'all' || rk !== 'all' || fk !== 'all';
     empty.innerHTML = EMPTY_PLACE;
     var html = '';
 var total = 0;
@@ -2083,6 +2292,7 @@ var total = 0;
       var rows = sec.p.filter(function(p){
         if(!placeMatch(p, ck)) return false;
         if(!regionMatch(p, rk)) return false;
+        if(!foodMatch(p, fk)) return false;
         if(!toks.length) return true;
         return placeHasAll(p, sec, toks);
       });
@@ -2115,6 +2325,7 @@ var total = 0;
   var cmfeedEl = document.getElementById('cmfeed');
   var CMEDIT = null;                     /* {id:'p..', cid:'..'} 수정 중인 후기 */
   var CMNICK = '';                       /* 🏆 랭킹에서 고른 닉네임 필터 */
+  var CMFILT = { mode: 'all', tag: '' };  /* 후기 필터: all|pos|neg + 개별 태그 */
 
   /* 서버가 주는 작성일 문자열을 정렬용 숫자로 */
   function cmTs(d){
@@ -2210,6 +2421,62 @@ var total = 0;
     return order.map(function(nk){ return { n: nk, c: map[nk] }; });
   }
 
+  /* 후기 태그 집계 — 긍정/비추 후기 수와 개별 태그별 건수 */
+  function cmTagStats(items){
+    var st = { total: items.length, pos: 0, neg: 0, mid: 0, byTag: {} };
+    for(var i = 0; i < items.length; i++){
+      var tags = UNGC.parseTags(items[i].c.t).tags, hasP = false, hasN = false;
+      for(var j = 0; j < tags.length; j++){
+        var k = tags[j], pol = UNGC.pol(k);
+        st.byTag[k] = (st.byTag[k] || 0) + 1;
+        if(pol === 'pos') hasP = true;
+        else if(pol === 'neg') hasN = true;
+      }
+      if(hasP) st.pos++;
+      if(hasN) st.neg++;
+    }
+    return st;
+  }
+  function cmFilterItems(items){
+    var mode = CMFILT.mode || 'all', tag = CMFILT.tag || '';
+    if(mode === 'all' && !tag) return items;
+    var out = [];
+    for(var i = 0; i < items.length; i++){
+      var tags = UNGC.parseTags(items[i].c.t).tags, ok = false;
+      if(tag) ok = tags.indexOf(tag) >= 0;
+      else for(var j = 0; j < tags.length; j++){ if(UNGC.pol(tags[j]) === mode){ ok = true; break; } }
+      if(ok) out.push(items[i]);
+    }
+    return out;
+  }
+  function cmFilterHTML(st){
+    var spec = [
+      {k:'all', t:'전체', n:st.total, cls:'all'},
+      {k:'pos', t:'👍 긍정', n:st.pos, cls:'pos'},
+      {k:'neg', t:'👎 비추', n:st.neg, cls:'neg'}
+    ], h = '';
+    h += '<div class="cmfilt"><div class="cmfiltrow">';
+    for(var i = 0; i < spec.length; i++){
+      var on = (!CMFILT.tag && (CMFILT.mode || 'all') === spec[i].k);
+      h += '<button class="cmfbtn ' + spec[i].cls + (on ? ' on' : '') + '" type="button" data-cmf="' + spec[i].k +
+        '" aria-pressed="' + (on ? 'true' : 'false') + '">' + spec[i].t + ' <b>' + spec[i].n + '</b></button>';
+    }
+    h += '</div>';
+    var tags = [], k;
+    for(k in st.byTag){ if(st.byTag.hasOwnProperty(k) && st.byTag[k] > 0) tags.push(k); }
+    if(tags.length){
+      tags.sort(function(a, b){ return (st.byTag[b] - st.byTag[a]) || (a < b ? -1 : a > b ? 1 : 0); });
+      h += '<div class="cmfiltrow tags">';
+      for(var j = 0; j < tags.length; j++){
+        var tk = tags[j], ton = (CMFILT.tag === tk);
+        h += '<button class="cmftag ' + UNGC.pol(tk) + (ton ? ' on' : '') + '" type="button" data-cmt="' + esc(tk) +
+          '" aria-pressed="' + (ton ? 'true' : 'false') + '">' + esc(UNGC.tagLabel(tk)) + ' <b>' + st.byTag[tk] + '</b></button>';
+      }
+      h += '</div>';
+    }
+    return h + '</div>';
+  }
+
   function rankBannerHTML(rank){
     if(!rank || !rank.length) return '';
     var MED = ['🥇', '🥈', '🥉'];
@@ -2244,13 +2511,21 @@ var total = 0;
       if(cnt) cnt.innerHTML = '';
       return;
     }
-    var items = cmFeedItems();
+    var allItems = cmFeedItems();
+    var stats = cmTagStats(allItems);
+    var items = cmFilterItems(allItems);
     var rank = cmNickRank();
     var h = rankBannerHTML(rank);
+    if(allItems.length) h += cmFilterHTML(stats);
     if(items.length){
+      var fl = CMFILT.tag
+        ? ' · ' + esc(UNGC.tagLabel(CMFILT.tag)) + '만'
+        : (CMFILT.mode === 'pos' ? ' · 👍 긍정만' : (CMFILT.mode === 'neg' ? ' · 👎 비추만' : ''));
       h += '<div class="cmfeedhdr">' + (CMNICK ? '🏆 ' + esc(CMNICK) + ' 님 후기 ' : '💬 최근 후기 ') +
-        '<b>' + items.length + '</b>개 · 최신순</div>';
+        '<b>' + items.length + '</b>개 · 최신순' + fl + '</div>';
       for(var i = 0; i < items.length; i++) h += cmCardHTML(items[i]);
+    } else if(allItems.length){
+      h += '<div class="cmempty">이 조건에 맞는 후기가 없어요.<br>위 필터에서 <b>전체</b>를 눌러 보세요.</div>';
     } else {
       h += '<div class="cmempty">' + (CMNICK
         ? '🏆 ' + esc(CMNICK) + ' 님 후기가 아직 없어요.<br>칩을 다시 눌러 전체 후기를 봐 주세요.'
@@ -2272,7 +2547,7 @@ var total = 0;
     if(qx) qx.classList.add('on');
     state.region = 'all'; state.pchip = 'all';
     setView('place');
-    renderPChips(); renderRChips(); renderPlaces();
+    renderPChips(); renderRChips(); renderCChips(); renderPlaces();
     var row = placesEl.querySelector('.prow[data-pl="' + id + '"]');
     if(row){
       row.scrollIntoView({block:'center', behavior:'smooth'});
@@ -2290,6 +2565,22 @@ var total = 0;
       var el = ev.target;
       var nc = el.closest ? el.closest('[data-cmr]') : null;
       if(nc){ ev.preventDefault(); var nk = nc.getAttribute('data-cmr'); CMNICK = (CMNICK === nk) ? '' : nk; renderCmFeed(); return; }
+      var fb = el.closest ? el.closest('[data-cmf]') : null;
+      if(fb){
+        ev.preventDefault();
+        var mk = fb.getAttribute('data-cmf');
+        CMFILT.mode = (mk === 'all') ? 'all' : ((CMFILT.mode === mk && !CMFILT.tag) ? 'all' : mk);
+        CMFILT.tag = '';
+        renderCmFeed(); return;
+      }
+      var ft = el.closest ? el.closest('[data-cmt]') : null;
+      if(ft){
+        ev.preventDefault();
+        var tk2 = ft.getAttribute('data-cmt');
+        CMFILT.tag = (CMFILT.tag === tk2) ? '' : tk2;
+        CMFILT.mode = 'all';
+        renderCmFeed(); return;
+      }
       var stb = el.closest ? el.closest('.stamp') : null;
       if(stb){ ev.preventDefault(); UNGC.toggleStamp(stb); return; }
       var go = el.closest ? el.closest('[data-go]') : null;
@@ -2386,7 +2677,8 @@ var total = 0;
     if(isC){
       /* 후기 탭: 검색어·지역 필터를 비우고 한 줄 후기 피드를 보여 준다 */
       if(q){ q.value = ''; if(qx) qx.classList.remove('on'); }
-      state.q = ''; state.region = 'all'; SECOPEN = {}; state.pchip = 'all'; CMEDIT = null; CMNICK = '';
+      state.q = ''; state.region = 'all'; state.food = 'all'; SECOPEN = {}; state.pchip = 'all'; CMEDIT = null; CMNICK = '';
+      CMFILT.mode = 'all'; CMFILT.tag = '';
     } else if(state.pchip === 'comment'){
       state.pchip = 'all';
     }
@@ -2397,6 +2689,7 @@ var total = 0;
     favPill.style.display = isR ? '' : 'none';
     pchipsEl.hidden = isR || isC;
     var rcEl = document.getElementById('rchips'); if(rcEl) rcEl.hidden = isR || isC;
+    var ccEl = document.getElementById('cchips'); if(ccEl) ccEl.hidden = isR || isC;
     var ptEl = document.getElementById('ptools'); if(ptEl) ptEl.hidden = isR || isC;
     grid.style.display = isR ? '' : 'none';
     empty.classList.toggle('on', false);
@@ -2404,7 +2697,7 @@ var total = 0;
     if(cmfeedEl) cmfeedEl.hidden = !isC;
     if(isR){ renderGrid(); }
     else if(isC){ renderCmFeed(); }
-    else { renderPChips(); renderRChips(); renderPlaces(); }
+    else { renderPChips(); renderRChips(); renderCChips(); renderPlaces(); }
     renderCmPill();
     window.scrollTo({top:0, behavior:'instant' in document.documentElement.style ? 'instant' : 'auto'});
   }
@@ -2684,6 +2977,7 @@ var total = 0;
       sec.p.forEach(function(p){
         if (!placeMatch(p, ck)) return;
         if (!regionMatch(p, rk)) return;
+        if (!foodMatch(p, state.food)) return;
         if (toks.length && !placeHasAll(p, sec, toks)) return;
         out.push(p);
       });
@@ -2766,7 +3060,7 @@ var total = 0;
   })();
 
   // init
-  renderCats(); renderStat(); renderGrid(); renderFavPill(); renderRChips();
+  renderCats(); renderStat(); renderGrid(); renderFavPill(); renderRChips(); renderCChips();
   if(UNGC.enabled()) UNGC.load(function(){ UNGC.refreshCounts(); });
 })();
 </script>
