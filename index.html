@@ -317,7 +317,7 @@ var UNGC = (function () {
 
   function esc(s) {
     return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;').replace(/<\/g, '&lt;')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
   function enabled() { return typeof API === 'string' && API.indexOf('http') === 0; }
@@ -450,14 +450,14 @@ var UNGC = (function () {
 
   function listHTML(itemId) {
     var arr = list(itemId);
-    if (!arr.length) return '<div class="cempty">아직 후기가 없어요. 첫 후기를 남겨 보세요!<\/div>';
+    if (!arr.length) return '<div class="cempty">아직 후기가 없어요. 첫 후기를 남겨 보세요!</div>';
     var h = '<ul class="clist">';
     for (var i = 0; i < arr.length; i++) {
-      h += '<li><span class="cnk">' + esc(arr[i].n) + '<\/span>' +
-           '<span class="ctt">' + esc(arr[i].t) + '<\/span>' +
-           (arr[i].d ? '<span class="cdt">' + esc(fmtDate(arr[i].d)) + '<\/span>' : '') + '<\/li>';
+      h += '<li><span class="cnk">' + esc(arr[i].n) + '</span>' +
+           '<span class="ctt">' + esc(arr[i].t) + '</span>' +
+           (arr[i].d ? '<span class="cdt">' + esc(fmtDate(arr[i].d)) + '</span>' : '') + '</li>';
     }
-    return h + '<\/ul>';
+    return h + '</ul>';
   }
 
   function formHTML(itemId) {
@@ -469,19 +469,19 @@ var UNGC = (function () {
       '<div class="crow">' +
         '<input class="ctext" type="text" maxlength="' + MAXT + '" autocomplete="off" ' +
           'placeholder="한 줄 후기 (최대 ' + MAXT + '자)">' +
-        '<button class="csubmit" type="button">등록<\/button>' +
-      '<\/div>' +
-      '<div class="cmsg" role="status"><\/div>' +
-      '<\/div>';
+        '<button class="csubmit" type="button">등록</button>' +
+      '</div>' +
+      '<div class="cmsg" role="status"></div>' +
+      '</div>';
   }
 
   /* 카드/시트에 넣을 후기 블록 */
   function sectionHTML(itemId, title) {
     if (!enabled()) return '';
     return '<div class="cbox" data-cm="' + esc(itemId) + '">' +
-      (title ? '<div class="ctitle">' + esc(title) + '<\/div>' : '') +
-      '<div class="cbody">' + (loadedAt ? listHTML(itemId) : '<div class="cempty">후기를 불러오는 중…<\/div>') + '<\/div>' +
-      formHTML(itemId) + '<\/div>';
+      (title ? '<div class="ctitle">' + esc(title) + '</div>' : '') +
+      '<div class="cbody">' + (loadedAt ? listHTML(itemId) : '<div class="cempty">후기를 불러오는 중…</div>') + '</div>' +
+      formHTML(itemId) + '</div>';
   }
 
   function refreshCounts() {
@@ -498,7 +498,7 @@ var UNGC = (function () {
   function repaint(box) {
     var id = box.getAttribute('data-cm');
     var body = box.querySelector('.cbody');
-    if (body) body.innerHTML = loadedAt ? listHTML(id) : '<div class="cempty">후기를 불러오는 중…<\/div>';
+    if (body) body.innerHTML = loadedAt ? listHTML(id) : '<div class="cempty">후기를 불러오는 중…</div>';
     refreshCounts();
   }
 
