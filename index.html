@@ -1928,7 +1928,7 @@ var UNGC = (function () {
   var iceBtn = document.getElementById('icebtn');
   function updateIceBtn(){
     if(!iceBtn) return;
-    iceBtn.hidden = (state.tab !== 'recipe');
+    iceBtn.hidden = (state.view !== 'recipe');
     var n = state.ings.length;
     iceBtn.className = 'icebtn' + ((state.iceOpen || n > 0) ? ' on' : '');
     iceBtn.setAttribute('aria-expanded', state.iceOpen ? 'true' : 'false');
@@ -1944,7 +1944,7 @@ var UNGC = (function () {
   function renderIceChips(){
     updateIceBtn();
     if(!iceEl) return;
-    iceEl.hidden = (state.tab !== 'recipe' || !state.iceOpen);
+    iceEl.hidden = (state.view !== 'recipe' || !state.iceOpen);
     if(iceEl.hidden) return;
     var html = '<span class="clab" aria-hidden="true">🧊 냉장고</span>' +
       '<button class="chip' + (!ingOn() ? ' on' : '') + '" type="button" data-ic="all" aria-pressed="' +
@@ -1972,7 +1972,7 @@ var UNGC = (function () {
   /* 카드 썸네일 💬 후기 배지 — 후기를 불러온 뒤 숫자를 채운다 */
   function refreshRcm(){
     if(!UNGC.enabled()) return;
-    if(state.tab === 'recipe') renderStat();
+    if(state.view === 'recipe') renderStat();
     var els = document.querySelectorAll('.rcmb');
     for(var i = 0; i < els.length; i++){
       var n = UNGC.count(els[i].getAttribute('data-rcm'));
@@ -1981,7 +1981,7 @@ var UNGC = (function () {
     }
     var hc = document.getElementById('rcmh');
     if(hc) hc.textContent = UNGC.count('r_' + sheetN) + '개';
-    if(state.tab === 'recipe') renderStat();
+    if(state.view === 'recipe') renderStat();
   }
 
   var UNIT = '(?:g|kg|ml|mL|L|개|공기|컵|스푼|큰술|작은술|T|t|장|대|쪽|알|모|봉|캔|팩|줌|꼬집|인분|분|시간|cm|%|kcal)';
