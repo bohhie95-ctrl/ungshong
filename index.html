@@ -535,33 +535,6 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
 .cmeditbox .cetop{display:flex;gap:6px;align-items:center;flex:1 1 100%}
 .cmeditbox .cetop input{flex:1;min-width:0}
 
-/* ---------- 🎡 후보 룰렛 ---------- */
-.rlh{font-size:12px;font-weight:850;letter-spacing:.02em;color:var(--accent);margin-bottom:3px}
-.rlsub{font-size:12px;color:#6B5F55;line-height:1.5;margin:0 0 8px}
-.rlsub b{color:#B8431F;font-weight:850}
-.rlstage{position:relative;width:100%;max-width:296px;margin:0 auto;padding-top:8px}
-.rlstage svg{display:block;width:100%;height:auto;
-  transition:transform 4.2s cubic-bezier(.11,.72,.14,1);transform-origin:50% 50%}
-.rlpin{position:absolute;left:50%;top:0;transform:translateX(-50%);font-size:15px;line-height:1;
-  color:var(--accent);z-index:2;filter:drop-shadow(0 1px 1px rgba(0,0,0,.18))}
-.rlhub{position:absolute;left:50%;top:calc(50% + 4px);transform:translate(-50%,-50%);width:42px;height:42px;
-  border-radius:50%;background:#fff;border:2px solid #F0DFC4;display:flex;align-items:center;justify-content:center;
-  font-size:16px;box-shadow:0 2px 8px rgba(34,28,24,.12)}
-.rlacts{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
-.ptool.rlspin{flex:1 1 auto;justify-content:center;padding:11px 14px;font-size:13.5px;border-radius:13px}
-.ptool.rlspin[disabled]{opacity:.65}
-.rlacts a.ptool{text-decoration:none}
-.rlresult{margin-top:12px;padding:11px 12px 12px;border-radius:15px;background:#fff;border:1px solid #F0DFC4;
-  box-shadow:0 2px 10px rgba(34,28,24,.06);display:none}
-.rlresult.on{display:block;animation:rlpop .3s ease-out 1}
-@keyframes rlpop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
-.rlwin{font-size:11.5px;font-weight:850;letter-spacing:.03em;color:#B8431F}
-.rlname{font-size:21px;font-weight:850;letter-spacing:-.02em;line-height:1.3;color:#1F1916;margin-top:3px}
-.rlmeta{font-size:12.5px;color:#6B5F55;margin-top:5px;line-height:1.5}
-.rlfoot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:13px;
-  padding-top:10px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
-.rlfoot .ptool{font-size:11px;padding:4px 9px}
-
 /* --- 토스트 --- */
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 74px);transform:translate(-50%,12px);
   max-width:86vw;padding:9px 14px;border-radius:999px;background:rgba(34,28,24,.94);color:#fff;
@@ -595,7 +568,7 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
     <div class="cnt" id="cnt"></div>
     <button class="favpill" id="favpill" type="button" aria-pressed="false">♡ 찜만 <span class="n" id="favn">0</span></button>
     <div class="seg" id="stat"></div>
-    <div class="ptools" id="ptools" hidden><button class="ptool" id="dicebtn" type="button" aria-label="오늘 어디 가지 룰렛 돌리기">🎡 룰렛</button></div>
+    <div class="ptools" id="ptools" hidden><button class="ptool" id="dicebtn" type="button" aria-label="오늘 어디 가지 랜덤 뽑기">🎲 오늘 어디 가지?</button></div>
   </div>
 </div>
 
@@ -2717,147 +2690,36 @@ var total = 0;
     });
     return out;
   }
-  /* ---------- 🎡 후보 룰렛 (기존 🎲 랜덤 업그레이드) ---------- */
-  var RL = { picks: [], rot: 0, busy: false, timer: null, winner: -1 };
-  var RLC = ['#FFE7DA', '#FFF6E4', '#EBE6FA', '#E6F3EA', '#FFECF1', '#E7EEFB', '#FBF2DE', '#E6F5F2'];
-
-  function shuffle(a){
-    var r = a.slice(), i, j, t;
-    for(i = r.length - 1; i > 0; i--){ j = Math.floor(Math.random() * (i + 1)); t = r[i]; r[i] = r[j]; r[j] = t; }
-    return r;
-  }
-  function pol(cx, cy, r, deg){
-    var a = deg * Math.PI / 180;
-    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
-  }
-  function sectorPath(cx, cy, r, a0, a1){
-    var p0 = pol(cx, cy, r, a0), p1 = pol(cx, cy, r, a1);
-    var large = (a1 - a0) > 180 ? 1 : 0;
-    return 'M' + cx + ',' + cy + ' L' + p0[0].toFixed(2) + ',' + p0[1].toFixed(2) +
-      ' A' + r + ',' + r + ' 0 ' + large + ' 1 ' + p1[0].toFixed(2) + ',' + p1[1].toFixed(2) + ' Z';
-  }
-  function shortName(s, max){
-    s = String(s || '');
-    return s.length > max ? s.slice(0, max - 1) + '…' : s;
-  }
-  function rouletteSVG(picks){
-    var n = picks.length, cx = 160, cy = 160, r = 148, step = 360 / n, i;
-    var h = '<svg id="rlwheel" viewBox="0 0 320 320" role="img" aria-label="후보 룰렛">';
-    for(i = 0; i < n; i++){
-      var a0 = -90 + step * i, a1 = a0 + step, mid = a0 + step / 2;
-      h += '<path d="' + sectorPath(cx, cy, r, a0, a1) + '" fill="' + RLC[i % RLC.length] +
-        '" stroke="#fff" stroke-width="2"/>';
-      var flip = (mid > 90 && mid < 270);
-      var rot = flip ? mid + 180 : mid;
-      var pt = pol(cx, cy, r * 0.9, mid);
-      h += '<text x="' + pt[0].toFixed(1) + '" y="' + pt[1].toFixed(1) + '" fill="#4A3B2A" font-size="11.5"' +
-        ' font-weight="800" text-anchor="' + (flip ? 'start' : 'end') + '" dominant-baseline="middle"' +
-        ' transform="rotate(' + rot.toFixed(1) + ' ' + pt[0].toFixed(1) + ' ' + pt[1].toFixed(1) + ')">' +
-        esc(shortName(picks[i].name, 9)) + '</text>';
-    }
-    h += '<circle cx="160" cy="160" r="148" fill="none" stroke="#E7D9C6" stroke-width="3"/>';
-    return h + '</svg>';
-  }
-  function rlActions(p, withAgain){
-    return '<div class="rlacts">' +
-      '<button class="ptool" type="button" data-rgo="1">👀 가게 보기</button>' +
-      (p.map ? '<a class="ptool" href="' + esc(p.map) + '" target="_blank" rel="noopener">🗺️ 지도 열기</a>' : '') +
-      (withAgain === false ? '' : '<button class="ptool" type="button" data-again="1">🎡 다시 돌리기</button>') +
-      '</div>';
-  }
-  function openRoulette(){
+  function pickRandom(){
     var rows = filteredPlaceRows();
-    if(!rows.length){ toast('조건에 맞는 곳이 없어요'); return; }
-    var h;
-    if(rows.length === 1){
-      var only = rows[0];
-      RL.picks = [only]; RL.winner = 0; RL.rot = 0; RL.busy = false;
-      h = '<div class="rlh">🎡 오늘 어디 가지? 룰렛</div>' +
-        '<p class="rlsub">지금 조건에 맞는 후보가 <b>1곳</b>뿐이라 바로 알려 드려요</p>' +
-        '<div class="rlresult on"><div class="rlwin">🎯 후보 1곳</div>' +
-        '<div class="rlname">' + esc(only.name) + '</div>' +
-        '<div class="rlmeta">' + esc(regionText(only.region)) +
-          (only._lb ? '<span class="mtag">' + esc(only._lb) + '</span>' : '') + '</div>' +
-        (only.desc ? '<div class="rlmeta">' + esc(only.desc) + '</div>' : '') +
-        rlActions(only, false) + '</div>' +
-        '<div class="rlfoot"><span>지금 조건 1곳</span>' +
-          '<button class="ptool ghost" type="button" data-close="1">닫기</button></div>';
-      openModal(h);
-      return;
-    }
-    RL.picks = shuffle(rows).slice(0, Math.min(8, rows.length));
-    RL.rot = 0; RL.busy = false; RL.winner = -1;
-    clearTimeout(RL.timer);
-    h = '<div class="rlh">🎡 오늘 어디 가지? 룰렛</div>' +
-      '<p class="rlsub">지금 조건 <b>' + rows.length + '곳</b> 중 <b>' + RL.picks.length + '곳</b>을 뽑아 돌려요</p>' +
-      '<div class="rlstage"><div class="rlpin" aria-hidden="true">▼</div>' + rouletteSVG(RL.picks) +
-        '<div class="rlhub" aria-hidden="true">🎡</div></div>' +
-      '<div class="rlacts"><button class="ptool pri rlspin" type="button" data-rs="1">돌리기!</button></div>' +
-      '<div class="rlresult" id="rlres" role="status" aria-live="polite"></div>' +
-      '<div class="rlfoot"><span>후보 ' + RL.picks.length + '곳</span>' +
+    if (!rows.length) { toast('조건에 맞는 곳이 없어요'); return; }
+    var p = rows[Math.floor(Math.random() * rows.length)];
+    var h = '<div class="diceh">🎲 오늘 어디 가지?</div>' +
+      '<div class="dicename">' + esc(p.name) + '</div>' +
+      '<div class="dicemeta">' + esc(regionText(p.region)) +
+        (p._lb ? '<span class="mtag">' + esc(p._lb) + '</span>' : '') + '</div>' +
+      (p.desc ? '<div class="dicedesc">' + esc(p.desc) + '</div>' : '') +
+      metaHTML(p) +
+      '<div class="diceacts">' +
+        (p.map ? '<a class="cta" href="' + esc(p.map) + '" target="_blank" rel="noopener">🗺️ 지도에서 열기</a>' : '') +
+      '</div>' +
+      '<div class="diceacts">' +
+        '<button class="ptool" type="button" data-again="1">🎲 다시 뽑기</button>' +
+        '<button class="ptool" type="button" data-share2="1" data-nm="' + esc(p.name) + '" data-url="' + esc(p.map || p.ig || '') + '">🔗 링크 복사</button>' +
+      '</div>' +
+      '<div class="dicefoot"><span>지금 조건 ' + rows.length + '곳 중 1곳</span>' +
         '<button class="ptool ghost" type="button" data-close="1">닫기</button></div>';
     openModal(h);
   }
-  function showRouletteResult(){
-    if(!RL.busy) return;
-    RL.busy = false;
-    var res = document.getElementById('rlres');
-    var p = RL.picks[RL.winner];
-    var w = document.getElementById('rlwheel');
-    var btn = mcardEl.querySelector('[data-rs]');
-    if(btn){ btn.disabled = false; btn.textContent = '돌리기!'; }
-    if(w && RL.winner >= 0){
-      var paths = w.querySelectorAll('path');
-      for(var i = 0; i < paths.length; i++){
-        paths[i].setAttribute('stroke-width', i === RL.winner ? '4' : '2');
-        paths[i].setAttribute('stroke', i === RL.winner ? '#E1542E' : '#fff');
-      }
-    }
-    if(!p || !res) return;
-    res.innerHTML = '<div class="rlwin">🎉 당첨!</div>' +
-      '<div class="rlname">' + esc(p.name) + '</div>' +
-      '<div class="rlmeta">' + esc(regionText(p.region)) +
-        (p._lb ? '<span class="mtag">' + esc(p._lb) + '</span>' : '') + '</div>' +
-      (p.desc ? '<div class="rlmeta">' + esc(p.desc) + '</div>' : '') +
-      rlActions(p);
-    res.classList.add('on');
-  }
-  function spinRoulette(){
-    if(RL.busy || RL.picks.length < 2) return;
-    var w = document.getElementById('rlwheel');
-    if(!w) return;
-    RL.busy = true;
-    var n = RL.picks.length, step = 360 / n;
-    var idx = Math.floor(Math.random() * n);
-    RL.winner = idx;
-    var jitter = (Math.random() - 0.5) * step * 0.5;
-    var base = ((-step * (idx + 0.5)) % 360 + 360) % 360;
-    var cur = ((RL.rot % 360) + 360) % 360;
-    var delta = ((base - cur) % 360 + 360) % 360;
-    RL.rot = RL.rot + 360 * 5 + delta + jitter;
-    var res = document.getElementById('rlres');
-    if(res){ res.classList.remove('on'); res.innerHTML = ''; }
-    var btn = mcardEl.querySelector('[data-rs]');
-    if(btn){ btn.disabled = true; btn.textContent = '도는 중…'; }
-    w.style.transform = 'rotate(' + RL.rot.toFixed(2) + 'deg)';
-    clearTimeout(RL.timer);
-    RL.timer = setTimeout(showRouletteResult, 4300);
-  }
   var diceBtn = document.getElementById('dicebtn');
-  if (diceBtn) diceBtn.addEventListener('click', openRoulette);
+  if (diceBtn) diceBtn.addEventListener('click', pickRandom);
   var bkBtn = document.getElementById('bkbtn');
   if (bkBtn) bkBtn.addEventListener('click', openBackup);
 
   if (mcardEl) mcardEl.addEventListener('click', function(ev){
     var el = ev.target;
     if (el.closest('[data-close]')) { closeModal(); return; }
-    if (el.closest('[data-rs]')) { spinRoulette(); return; }
-    if (el.closest('[data-again]')) { spinRoulette(); return; }
-    if (el.closest('[data-rgo]')) {
-      var win = RL.picks[RL.winner];
-      if (win) { closeModal(); gotoPlaceFromFeed(markId(win), win.name); }
-      return;
-    }
+    if (el.closest('[data-again]')) { pickRandom(); return; }
     var sh = el.closest('[data-share2]');
     if (sh) { copyText(sh.getAttribute('data-nm') + '\n' + sh.getAttribute('data-url'), '🔗 가게 이름·지도 링크를 복사했어요'); return; }
     if (el.closest('[data-bkcopy]')) {
