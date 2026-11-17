@@ -626,7 +626,6 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
   <div class="chips" id="rcchips" hidden></div>
   <div class="subrow">
     <div class="cnt" id="cnt"></div>
-    <button class="icebtn" id="icebtn" type="button" aria-expanded="false">🧊 냉장고 ▾</button>
     <button class="favpill" id="favpill" type="button" aria-pressed="false">♡ 찜만 <span class="n" id="favn">0</span></button>
     <div class="seg" id="stat"></div>
     <div class="ptools" id="ptools" hidden><button class="ptool" id="dicebtn" type="button" aria-label="오늘 어디 가지 랜덤 뽑기">🎲 오늘 어디 가지?</button></div>
@@ -1866,9 +1865,7 @@ var UNGC = (function () {
   var STATOPTS = [
     { k:'quick',     t:'⚡ 초간단' },
     { k:'appliance', t:'🔌 렌지·에프' },
-    { k:'reviewed',  t:'💬 후기' },
-    { k:'pos',       t:'👍 긍정' },
-    { k:'neg',       t:'👎 비추' }
+    { k:'reviewed',  t:'💬 후기' }
   ];
   function recipeHasPol(e, pol){
     var arr = UNGC.list('r_' + e.n);
@@ -1942,9 +1939,8 @@ var UNGC = (function () {
     });
   }
   function renderIceChips(){
-    updateIceBtn();
     if(!iceEl) return;
-    iceEl.hidden = (state.view !== 'recipe' || !state.iceOpen);
+    iceEl.hidden = (state.view !== 'recipe');
     if(iceEl.hidden) return;
     var html = '<span class="clab" aria-hidden="true">🧊 냉장고</span>' +
       '<button class="chip' + (!ingOn() ? ' on' : '') + '" type="button" data-ic="all" aria-pressed="' +
@@ -2062,14 +2058,8 @@ var UNGC = (function () {
   var nQuick = D.filter(function(e){return e.ic <= 5;}).length;
   var nAppliance = D.filter(isAppliance).length;
   function renderStat(){
-    var nRev = 0, nPos = 0, nNeg = 0;
-    for(var i = 0; i < D.length; i++){
-      var e = D[i];
-      if(UNGC.count('r_' + e.n) > 0) nRev++;
-      if(recipeHasPol(e, 'pos')) nPos++;
-      if(recipeHasPol(e, 'neg')) nNeg++;
-    }
-    var counts = { quick:nQuick, appliance:nAppliance, reviewed:nRev, pos:nPos, neg:nNeg };
+    var nRev = D.filter(function(e){return UNGC.count('r_' + e.n) > 0;}).length;
+    var counts = { quick:nQuick, appliance:nAppliance, reviewed:nRev };
     var html = '<button data-s="all" class="'+(statOn()?'':'on')+'" aria-pressed="'+(statOn()?'false':'true')+'">전체</button>';
     STATOPTS.forEach(function(o){
       var on = statHas(o.k);
@@ -2552,6 +2542,8 @@ var total = 0;
   }
   /* 선택된 필터를 모두 만족하는 후기만(AND) — '👍 긍정'·'👎 비추'는 그 극성 태그를 하나라도 가진 후기 */
   function cmfLabel(k){
+    if(k === 'place') return '📍 가볼 곳';
+    if(k === 'recipe') return '🍚 레시피';
     if(k === 'pos') return '👍 긍정';
     if(k === 'neg') return '👎 비추';
     if(k === 'dog') return '🐶 애견동반';
@@ -2576,8 +2568,8 @@ var total = 0;
       if(sec.k === 'folder') return;
       sec.p.forEach(function(p){
         var id = markId(p);
-        if(id === REQ_ID) return;                  /* 추가·수정 요청함은 후기가 아니다 */
-        if(id.indexOf('r_') === 0) return;         /* 레시피 한줄 후기(r_…)는 섞이지 않게 */
+        if(id === REQ_ID) return;
+        if(id.indexOf('r_') === 0) return;
         var arr = UNGC.list(id);
         if(!arr || !arr.length) return;
         var base = norm([p.name, p.region, p.desc, dish(p)].join(' '));
@@ -2589,23 +2581,49 @@ var total = 0;
             if((base + ' ' + norm([c.n, c.t].join(' '))).indexOf(toks[k]) < 0){ ok = false; break; }
           }
           if(!ok) continue;
-          if(CMNICK && String(c.n || '익명') !== CMNICK) continue;   /* 🏆 랭킹 닉네임 필터 */
-          out.push({p:p, c:c, id:id, ts:cmTs(c.d)});
+          if(CMNICK && String(c.n || '익명') !== CMNICK) continue;
+          out.push({kind:'place', p:p, c:c, id:id, ts:cmTs(c.d)});
         }
       });
+    });
+    D.forEach(function(e){
+      var id = 'r_' + e.n;
+      var arr = UNGC.list(id);
+      if(!arr || !arr.length) return;
+      var base = norm([e.t, e.c].join(' '));
+      for(var i = 0; i < arr.length; i++){
+        var c = arr[i];
+        if(!c || !c.t) continue;
+        var ok = true;
+        for(var k = 0; k < toks.length; k++){
+          if((base + ' ' + norm([c.n, c.t].join(' '))).indexOf(toks[k]) < 0){ ok = false; break; }
+        }
+        if(!ok) continue;
+        if(CMNICK && String(c.n || '익명') !== CMNICK) continue;
+        out.push({kind:'recipe', e:e, c:c, id:id, ts:cmTs(c.d)});
+      }
     });
     out.sort(function(a, b){ return b.ts - a.ts; });   /* 최신순 */
     return out;
   }
 
   function cmCardHTML(it){
-    var p = it.p, c = it.c;
+    var c = it.c;
     var mh = UNGC.hash();
     var isMine = !!(mh && c.h && c.h === mh);
     var editing = !!(CMEDIT && CMEDIT.cid === c.id && CMEDIT.id === it.id);
-    var nm = (p.name || '') + '<span class="ar">›</span>';
-    var h = '<article class="cmcard" data-cid="' + esc(c.id) + '" data-id="' + esc(it.id) + '">' +
-      '<div class="cmhead"><div class="cmhl">' +
+    var h = '<article class="cmcard" data-cid="' + esc(c.id) + '" data-id="' + esc(it.id) + '">';
+    if(it.kind === 'recipe'){
+      var e = it.e;
+      h += '<div class="cmhead"><div class="cmhl">' +
+        '<button class="cmname" type="button" data-gor="' + e.n + '" ' +
+          'aria-label="' + esc(e.t) + ' 레시피 보기">🍳 ' + esc(e.t) + '<span class="ar">›</span></button>' +
+        '<span class="cmdish">🍚 ' + esc(e.c) + '</span>' +
+      '</div></div>';
+    } else {
+      var p = it.p;
+      var nm = (p.name || '') + '<span class="ar">›</span>';
+      h += '<div class="cmhead"><div class="cmhl">' +
         '<button class="cmname" type="button" data-go="' + esc(it.id) + '" data-nm="' + esc(p.name || '') + '" ' +
           'aria-label="' + esc(p.name || '') + ' 가게 정보 보기">' + nm + '</button>' +
         (dish(p) ? '<span class="cmdish">🍽 ' + esc(dish(p)) + '</span>' : '') +
@@ -2613,9 +2631,10 @@ var total = 0;
       '</div>' +
         (p.map ? '<a class="cmmap" href="' + esc(p.map) + '" target="_blank" rel="noopener">🗺️ 지도</a>' : '') +
       '</div>';
+    }
     var pz = UNGC.parseTags(c.t);
     if(editing){
-      h += '<div class="cmeditbox">' + UNGC.stampButtonsHTML(pz.tags) +
+      h += '<div class="cmeditbox">' + UNGC.stampButtonsHTML(pz.tags, it.id) +
         '<div class="cetop"><input type="text" maxlength="' + (UNGC._MAX && UNGC._MAX.t || 140) + '" ' +
         'value="' + esc(pz.body) + '" aria-label="후기 수정">' +
         '<button class="save" type="button" data-fcs="' + esc(c.id) + '">저장</button>' +
@@ -2635,30 +2654,34 @@ var total = 0;
   /* 🏆 후기왕 랭킹 — 닉네임별 후기 수 Top 3 (요청함 __req__ 제외) */
   function cmNickRank(){
     var map = {}, order = [];
+    function addRank(id){
+      var arr = UNGC.list(id);
+      for(var i = 0; i < arr.length; i++){
+        var c = arr[i];
+        if(!c || !c.t) continue;
+        var nk = String(c.n || '익명');
+        if(map[nk] === undefined){ map[nk] = 0; order.push(nk); }
+        map[nk]++;
+      }
+    }
     PL.forEach(function(sec){
       if(sec.k === 'folder') return;
       sec.p.forEach(function(p){
         var id = markId(p);
-        if(id === REQ_ID) return;
-        if(id.indexOf('r_') === 0) return;         /* 레시피 후기는 후기왕 랭킹에서 제외 */
-        var arr = UNGC.list(id);
-        for(var i = 0; i < arr.length; i++){
-          var c = arr[i];
-          if(!c || !c.t) continue;
-          var nk = String(c.n || '익명');
-          if(map[nk] === undefined){ map[nk] = 0; order.push(nk); }
-          map[nk]++;
-        }
+        if(id === REQ_ID || id.indexOf('r_') === 0) return;
+        addRank(id);
       });
     });
+    D.forEach(function(e){ addRank('r_' + e.n); });
     order.sort(function(a, b){ return (map[b] - map[a]) || (a < b ? -1 : a > b ? 1 : 0); });
     return order.map(function(nk){ return { n: nk, c: map[nk] }; });
   }
 
   /* 후기 태그 집계 — 긍정/비추 후기 수와 개별 태그별 건수 */
   function cmTagStats(items){
-    var st = { total: items.length, pos: 0, neg: 0, mid: 0, dog: 0, park: 0, byTag: {} };
+    var st = { total: items.length, place: 0, recipe: 0, pos: 0, neg: 0, mid: 0, dog: 0, park: 0, byTag: {} };
     for(var i = 0; i < items.length; i++){
+      if(items[i].kind === 'recipe') st.recipe++; else st.place++;
       var tags = UNGC.parseTags(items[i].c.t).tags, hasP = false, hasN = false;
       for(var j = 0; j < tags.length; j++){
         var k = tags[j], pol = UNGC.pol(k);
@@ -2681,7 +2704,9 @@ var total = 0;
       var tags = UNGC.parseTags(items[i].c.t).tags, ok = true;
       for(var j = 0; j < a.length && ok; j++){
         var k = a[j];
-        if(k === 'pos' || k === 'neg'){
+        if(k === 'place'){ ok = (items[i].kind === 'place'); }
+        else if(k === 'recipe'){ ok = (items[i].kind === 'recipe'); }
+        else if(k === 'pos' || k === 'neg'){
           var hit = false;
           for(var t = 0; t < tags.length; t++){ if(UNGC.pol(tags[t]) === k){ hit = true; break; } }
           ok = hit;
@@ -2696,6 +2721,8 @@ var total = 0;
   function cmFilterHTML(st){
     var spec = [
       {k:'all', t:'전체', n:st.total, cls:'all'},
+      {k:'place', t:'📍 가볼 곳', n:st.place, cls:'all'},
+      {k:'recipe', t:'🍚 레시피', n:st.recipe, cls:'all'},
       {k:'pos', t:'👍 긍정', n:st.pos, cls:'pos'},
       {k:'neg', t:'👎 비추', n:st.neg, cls:'neg'},
       {k:'dog', t:'🐶 애견동반', n:st.dog, cls:'dog'},
@@ -2806,6 +2833,8 @@ var total = 0;
       }
       var stb = el.closest ? el.closest('.stamp') : null;
       if(stb){ ev.preventDefault(); UNGC.toggleStamp(stb); return; }
+      var gor = el.closest ? el.closest('[data-gor]') : null;
+      if(gor){ ev.preventDefault(); openSheet(Number(gor.getAttribute('data-gor'))); return; }
       var go = el.closest ? el.closest('[data-go]') : null;
       if(go){ ev.preventDefault(); gotoPlaceFromFeed(go.getAttribute('data-go'), go.getAttribute('data-nm') || ''); return; }
       var card = el.closest ? el.closest('.cmcard') : null;
@@ -2908,7 +2937,7 @@ var total = 0;
     q.setAttribute('placeholder', isR ? '재료 여러 개로 찾기 (예: 스팸 계란)'
       : (isC ? '후기·가게·닉네임으로 찾기' : '장소·지역·주차·애견으로 찾기 (예: 연남 카페)'));
     document.getElementById('cats').style.display = isR ? '' : 'none';
-    var iceBox = document.getElementById('rcchips'); if(iceBox) iceBox.hidden = !isR;
+    renderIceChips();
     var rtBox = document.getElementById('rtools'); if(rtBox) rtBox.hidden = !isR;
     document.getElementById('stat').style.display = isR ? '' : 'none';
     favPill.style.display = isR ? '' : 'none';
