@@ -1107,39 +1107,65 @@ var UNGC = (function () {
     return true;
   }
 
-  /* ---------- 광역 지역 필터 ---------- */
+  /* ---------- 광역 지역 필터 (전국 맛지도) ---------- */
   var RCHIPS = [
-    {k:'all',      t:'전체'},
-    {k:'seoul',    t:'서울',   re:/^서울/},
-    {k:'gyeonggi', t:'경기',   re:/^경기/},
-    {k:'incheon',  t:'인천',   re:/^인천/},
-    {k:'gwangju',  t:'광주',   re:/^광주/},
-    {k:'gyeongju', t:'경주',   re:/경주/, full:true},   /* 경북 경주 — 지역 표기에 경주가 없어도 이름·설명으로 모은다 */
-    {k:'etc',      t:'기타'}
+    {k:'all',          t:'전체'},
+    {k:'seoul',        t:'서울'},
+    {k:'gyeonggi',     t:'경기'},
+    {k:'incheon',      t:'인천'},
+    {k:'gjjeolla',     t:'광주·전라'},
+    {k:'gangwon',      t:'강원'},
+    {k:'chungcheong',  t:'충청'},
+    {k:'busan',        t:'부산'},
+    {k:'daegu',        t:'대구'},
+    {k:'gjgyeongsang', t:'경주·경상'},
+    {k:'jeju',         t:'제주'},
+    {k:'etc',          t:'기타'}            /* 미분류 0건이면 renderRChips가 칩을 숨긴다 */
   ];
   var RCHIPBY = {};
   RCHIPS.forEach(function(c){ RCHIPBY[c.k] = c; });
-  /* 다른 시·도로 시작하는 지역은 이름에 '경주'가 들어가도 옮기지 않는다(예: 충남 태안의 '스테이가경주') */
-  var OTHER_SIDO = /^(부산|대구|대전|울산|세종|강원|충북|충남|전북|전남|경북|경남|제주)/;
-  /* 지역 표기가 시·군 이름만 있는 경우(예: '안양시 만안구 …', '남양주·별네')를 시·도로 되살린다 */
-  var AREA_WORDS = [
-    ['incheon', /(인천|송도|청라|영종|을왕리|강화|부평|미추홀|주안|구월|검단|계양|연수구|남동구)/],
-    ['gyeonggi', /(경기|수원|성남|분당|판교|용인|수지|기흥|남양주|별내|진접|다산|고양|일산|덕양|화정|화성|동탄|부천|안산|평택|안양|평촌|시흥|파주|김포|의정부|하남|미사|광명|군포|산본|오산|이천|양주|안성|구리|포천|의왕|양평|여주|동두천|과천|가평|연천|곤지암)/],
-    ['seoul',   /(서울|강남|서초|송파|마포|용산|성동|광진|종로|노원|도봉|강서|양천|구로|금천|영등포|동작|관악|서대문|은평|중랑|성북|강북|강동|연남|성수|홍대|합정|상수|망원|이태원|한남|잠실|신촌|여의도|을지로|익선|안국|혜화|인사동|압구정|청담|역삼|선릉|삼성|건대|왕십리|사당|방배)/]
+  /* 지역 머리말의 시·도 접두를 먼저 본다 — '경기 광주'(경기도 광주시)와 '광주 동구'(광주광역시)를 섞지 않는다 */
+  var SIDO_RE = [
+    ['seoul',        /^서울/],
+    ['gyeonggi',     /^경기/],
+    ['incheon',      /^인천/],
+    ['gjjeolla',     /^광주/],
+    ['busan',        /^부산/],
+    ['daegu',        /^대구/],
+    ['chungcheong',  /^(대전|세종|충북|충남|충청)/],
+    ['gangwon',      /^강원/],
+    ['gjjeolla',     /^(전북|전남|전라)/],
+    ['gjgyeongsang', /^(경북|경남|울산|경상)/],
+    ['jeju',         /^(제주|서귀포)/]
   ];
+  /* 시·도 표기 없이 시·군 이름만 있는 경우(예: '성남시 …', '경주시 …', '목포 · 카페')를 광역으로 되살린다
+     경기도 광주시의 읍면(곤지암·오포·퇴촌·초월·태전)은 경기로 둔다 */
+  var CITY_RE = [
+    ['jeju',         /(제주시|서귀포시|제주)/],
+    ['busan',        /(해운대|수영|부산진|동래|금정|기장|사상|사하|연제|영도)/],
+    ['daegu',        /(달서|수성|달성)/],
+    ['incheon',      /(송도|청라|영종|을왕리|강화|부평|미추홀|주안|구월|검단|계양|연수|남동)/],
+    ['gangwon',      /(강릉|속초|춘천|원주|양양|홍천|횡성|영월|평창|정선|철원|화천|인제|삼척|동해|태백|양구|고성군)/],
+    ['chungcheong',  /(대전|세종|청주|충주|제천|천안|아산|공주|논산|보령|서산|당진|태안|예산|홍성|부여|서천|금산|계룡|음성|진천|괴산|단양|증평|옥천|영동)/],
+    ['gjjeolla',     /(전주|익산|군산|정읍|남원|김제|완주|무주|진안|장수|임실|순창|고창|부안|목포|여수|순천|나주|광양|담양|곡성|구례|고흥|보성|화순|장흥|강진|해남|영암|무안|함평|영광|장성|완도|진도|신안)/],
+    ['gjgyeongsang', /(경주|포항|김천|안동|구미|영주|영천|상주|문경|경산|의성|청송|영양|영덕|청도|고령|성주|칠곡|예천|봉화|울진|울릉|창원|진주|통영|사천|김해|밀양|거제|양산|의령|함안|창녕|남해|하동|산청|함양|거창|합천|울주)/],
+    ['gyeonggi',     /(수원|성남|분당|판교|용인|수지|기흥|남양주|별내|진접|다산|고양|일산|덕양|화정|화성|동탄|부천|안산|평택|안양|평촌|시흥|파주|김포|의정부|하남|미사|광명|군포|산본|오산|이천|양주|안성|구리|포천|의왕|양평|여주|동두천|과천|가평|연천|곤지암|오포|퇴촌|초월|태전)/],
+    ['seoul',        /(서울|강남|서초|송파|마포|용산|성동|광진|종로|노원|도봉|강서|양천|구로|금천|영등포|동작|관악|서대문|은평|중랑|성북|강북|강동|연남|성수|홍대|합정|상수|망원|이태원|한남|잠실|신촌|여의도|을지로|익선|안국|혜화|인사동|압구정|청담|역삼|선릉|삼성|건대|왕십리|사당|방배)/]
+  ];
+  /* '서울 강남·선릉 · 맛집' → '서울', '성남시 분당구 구미로 124' → '성남시' */
+  function regionHead(p){
+    var seg = String(p.region || '').split(' · ')[0];
+    seg = seg.split('·')[0].replace(/^\s+|\s+$/g, '');
+    return seg.split(/\s+/)[0] || '';
+  }
   function regionKey(p){
     var r = String(p.region || '');
-    var extra = String(p.name || '') + ' ' + String(p.desc || '');
-    for (var i = 0; i < RCHIPS.length; i++) {
-      var c = RCHIPS[i];
-      if (!c.re) continue;
-      if (c.re.test(r)) return c.k;
-      if (c.full && !OTHER_SIDO.test(r) && c.re.test(extra)) return c.k;
-    }
-    if (OTHER_SIDO.test(r)) return 'etc';
-    for (var j = 0; j < AREA_WORDS.length; j++) {
-      if (AREA_WORDS[j][1].test(r)) return AREA_WORDS[j][0];
-    }
+    var head = regionHead(p);
+    if (!head) return 'etc';
+    var i;
+    for (i = 0; i < SIDO_RE.length; i++) { if (SIDO_RE[i][1].test(head)) return SIDO_RE[i][0]; }
+    for (i = 0; i < CITY_RE.length; i++) { if (CITY_RE[i][1].test(head)) return CITY_RE[i][0]; }
+    for (i = 0; i < SIDO_RE.length; i++) { if (SIDO_RE[i][1].test(r)) return SIDO_RE[i][0]; }
     return 'etc';
   }
   function regionMatch(p, k){
@@ -1806,6 +1832,7 @@ var UNGC = (function () {
     var html = '<span class="clab" aria-hidden="true">지역</span>';
     RCHIPS.forEach(function(c){
       var n = (c.k === 'all') ? all.length : (counts[c.k] || 0);
+      if (c.k !== 'all' && n === 0) return;      /* 0건 지역은 칩을 만들지 않는다(기타 포함) */
       html += '<button class="chip' + (state.region === c.k ? ' on' : '') + '" type="button" data-rc="' + c.k +
         '" aria-pressed="' + (state.region === c.k ? 'true' : 'false') + '">' + c.t +
         '<span class="c">' + n + '</span></button>';
