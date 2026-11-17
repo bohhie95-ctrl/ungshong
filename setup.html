@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>웅숑 후기 댓글 백엔드 만들기</title>
+<meta name="theme-color" content="#FAF6F1">
+<style>
+:root{--bg:#FAF6F1;--card:#fff;--ink:#221C18;--muted:#8B7F75;--line:#EDE3D9;--accent:#E1542E;--soft:#FFF1EA}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.62;word-break:keep-all;
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",system-ui,sans-serif;
+  -webkit-text-size-adjust:100%}
+.wrap{max-width:720px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 16px 60px}
+.k{font-size:11.5px;font-weight:800;letter-spacing:.1em;color:var(--accent);text-transform:uppercase}
+h1{font-size:23px;font-weight:850;letter-spacing:-.03em;margin:6px 0 6px}
+.sub{font-size:13px;color:var(--muted);margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 15px;margin:0 0 12px;
+  box-shadow:0 1px 2px rgba(34,28,24,.05)}
+.step{display:flex;gap:10px;margin:0 0 14px}
+.step:last-child{margin-bottom:0}
+.num{flex:0 0 24px;height:24px;border-radius:50%;background:var(--soft);border:1px solid #F6D2C2;color:#B8431F;
+  font-size:12px;font-weight:850;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.t{font-size:14.5px;font-weight:750;margin:0 0 3px}
+.d{font-size:13px;color:#5C534C;margin:0}
+.d b{color:#B8431F;font-weight:800}
+.d code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:12px;color:#8A4B2E;
+  font-family:ui-monospace,Menlo,monospace;white-space:nowrap}
+.copybar{position:sticky;top:0;z-index:5;background:rgba(250,246,241,.95);backdrop-filter:blur(10px);
+  padding:10px 0 8px;margin:0 -16px 8px;padding-left:16px;padding-right:16px}
+#cp{width:100%;border:0;border-radius:14px;background:linear-gradient(135deg,#F06A41,#D94820);color:#fff;
+  font-weight:850;font-size:15px;padding:15px;font-family:inherit;box-shadow:0 6px 16px -8px rgba(217,72,32,.7)}
+#cp:active{transform:scale(.99)}
+#cp.done{background:linear-gradient(135deg,#2E9A67,#1F7A4D)}
+textarea{width:100%;height:230px;border:1px solid var(--line);border-radius:12px;background:#fff;color:#3A322C;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;line-height:1.5;padding:11px;
+  -webkit-appearance:none;white-space:pre;overflow:auto}
+.note{font-size:12px;color:#8A7A4E;background:#FAF7EE;border:1px solid #EBE3CD;border-radius:12px;padding:10px 12px;margin:0 0 12px}
+.note b{color:#6B5A2E}
+a.back{display:inline-block;margin-top:6px;font-size:13px;font-weight:750;color:#1F7A4D;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="k">웅숑 · 한 번만 하면 끝</div>
+  <h1>공유 후기 댓글 백엔드 만들기</h1>
+  <p class="sub">아래 4단계만 하면 친구들이 로그인 없이 후기를 남길 수 있어요. 만든 뒤 나오는 <b>웹 앱 주소</b>만 채팅으로 보내 주세요.</p>
+
+  <div class="copybar"><button id="cp" type="button">① 코드 전체 복사하기</button></div>
+
+  <div class="card">
+    <div class="step"><div class="num">1</div><div>
+      <p class="t">script.google.com 열기</p>
+      <p class="d">이미 Google에 로그인된 폰 브라우저에서 <code>script.google.com</code> 접속 → 오른쪽 아래 <b>+ 새 프로젝트</b>.</p>
+    </div></div>
+    <div class="step"><div class="num">2</div><div>
+      <p class="t">기본 코드 지우고 붙여넣기</p>
+      <p class="d">편집기에 있는 <code>function myFunction() {}</code> 를 모두 지우고, 위의 <b>코드 전체 복사하기</b>로 복사한 내용을 붙여넣은 뒤 저장(디스크 아이콘).</p>
+    </div></div>
+    <div class="step"><div class="num">3</div><div>
+      <p class="t">웹 앱으로 배포</p>
+      <p class="d">오른쪽 위 <b>배포</b> → <b>새 배포</b> → 유형(톱니)에서 <b>웹 앱</b> 선택 →
+        <b>다음 사용자로 실행: 나</b>, <b>액세스 권한: 모든 사용자</b> → <b>배포</b>.
+        권한 화면이 나오면 본인 계정 선택 → <b>고급</b> → <b>(프로젝트 이름)(으)로 이동(안전하지 않음)</b> → <b>허용</b>.</p>
+    </div></div>
+    <div class="step"><div class="num">4</div><div>
+      <p class="t">웹 앱 URL 보내기</p>
+      <p class="d">나오는 <code>https://script.google.com/macros/s/…/exec</code> 주소를 <b>그대로 복사</b>해 채팅으로 보내 주세요. 나머지(시트 자동 생성·연결·테스트·배포)는 제가 합니다.</p>
+    </div></div>
+  </div>
+
+  <div class="note">🛡️ 이 코드는 댓글 <b>4칸(항목·닉네임·후기·시각)</b>만 저장하고, 첫 실행 때 <b>‘웅숑 후기 댓글’ 시트</b>를 자동으로 만듭니다. 이메일·전화번호 같은 개인정보는 저장하지 않아요.</div>
+
+  <p class="sub" style="margin-top:14px">붙여넣을 코드 (복사 버튼이 안 되면 여기서 길게 눌러 전체 선택)</p>
+  <textarea id="code" readonly spellcheck="false">/**
+ * 웅숑 공유 후기 댓글 API (Google Apps Script 웹 앱)
+ * ------------------------------------------------------------------
+ * 시트 컬럼: item_id | nickname | comment | created_at
+ *
+ * GET
+ *   ?action=list                       → {ok:true, items:{item_id:[{n,t,d}, ...]}}   (최신순)
+ *   ?action=item&amp;item_id=...           → {ok:true, item_id, c:[...]}                 (해당 항목만)
+ *   ?action=add&amp;item_id=..&amp;nickname=..&amp;comment=..  → 저장 후 {ok:true, c:[...]}
+ *   &amp;callback=함수명                    → JSONP(자바스크립트) 응답으로 감싸 반환
+ * POST
+ *   본문 JSON {item_id, nickname, comment}  또는 폼(e.parameter) → {ok:true, c:[...]}
+ *
+ * 개인정보: 댓글 4개 컬럼만 저장합니다. 계정 이메일·전화번호·소유자 정보는
+ * 시트에 쓰지 않고, 웹 앱 응답에도 포함하지 않습니다.
+ */
+
+var SHEET_ID = &#x27;&#x27;;            // 비워 두면 스크립트가 붙은 시트 → 없으면 새 시트를 자동 생성
+var SHEET_NAME = &#x27;comments&#x27;;
+var SHEET_TITLE = &#x27;웅숑 후기 댓글&#x27;;
+var MAX_NICK = 12;            // 닉네임 최대 길이
+var MAX_TEXT = 140;           // 후기 최대 길이
+var MAX_PER_ITEM = 80;        // 항목당 최근 후기 보관/반환 개수
+var TZ = &#x27;Asia/Seoul&#x27;;
+
+function doGet(e) {
+  var p = (e &amp;&amp; e.parameter) || {};
+  var out;
+  try {
+    var action = p.action || &#x27;list&#x27;;
+    if (action === &#x27;add&#x27;) {
+      out = addComment_(p.item_id, p.nickname, p.comment);
+    } else if (action === &#x27;item&#x27;) {
+      out = { ok: true, item_id: String(p.item_id || &#x27;&#x27;), c: listFor_(String(p.item_id || &#x27;&#x27;)) };
+    } else {
+      out = { ok: true, items: listAll_() };
+    }
+  } catch (err) {
+    out = { ok: false, error: String((err &amp;&amp; err.message) || err) };
+  }
+  return reply_(out, p.callback);
+}
+
+function doPost(e) {
+  var out;
+  try {
+    var body = {};
+    if (e &amp;&amp; e.postData &amp;&amp; e.postData.contents) {
+      var raw = e.postData.contents;
+      try { body = JSON.parse(raw); } catch (_) { body = queryToObject_(raw); }
+    }
+    var p = (e &amp;&amp; e.parameter) || {};
+    var itemId = body.item_id || p.item_id;
+    var nick = body.nickname || p.nickname;
+    var text = body.comment || p.comment;
+    out = addComment_(itemId, nick, text);
+  } catch (err) {
+    out = { ok: false, error: String((err &amp;&amp; err.message) || err) };
+  }
+  return reply_(out, &#x27;&#x27;);
+}
+
+/* ---------------- 응답 ---------------- */
+
+function reply_(obj, callback) {
+  var json = JSON.stringify(obj);
+  if (callback &amp;&amp; /^[A-Za-z_$][A-Za-z0-9_$]*(\.[A-Za-z_$][A-Za-z0-9_$]*)*$/.test(callback)) {
+    return ContentService.createTextOutput(callback + &#x27;(&#x27; + json + &#x27;);&#x27;)
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
+}
+
+/* ---------------- 저장소 ---------------- */
+
+function sheet_() {
+  var ss = null;
+  var props = PropertiesService.getScriptProperties();
+  var id = SHEET_ID || props.getProperty(&#x27;SHEET_ID&#x27;);
+  if (id) {
+    try { ss = SpreadsheetApp.openById(id); } catch (_) { ss = null; }
+  }
+  if (!ss) {
+    try { ss = SpreadsheetApp.getActiveSpreadsheet(); } catch (_) { ss = null; }
+  }
+  if (!ss) {                                   // 독립 스크립트: 첫 요청 때 시트를 만들어 둔다
+    ss = SpreadsheetApp.create(SHEET_TITLE);
+    props.setProperty(&#x27;SHEET_ID&#x27;, ss.getId());
+  }
+  var sh = ss.getSheetByName(SHEET_NAME);
+  if (!sh) {
+    sh = ss.getSheetByName(&#x27;시트1&#x27;) || ss.getSheetByName(&#x27;Sheet1&#x27;);
+    if (sh &amp;&amp; ss.getSheets().length === 1) sh.setName(SHEET_NAME);
+    else sh = ss.insertSheet(SHEET_NAME);
+    sh.appendRow([&#x27;item_id&#x27;, &#x27;nickname&#x27;, &#x27;comment&#x27;, &#x27;created_at&#x27;]);
+    sh.getRange(1, 1, 1, 4).setFontWeight(&#x27;bold&#x27;);
+    sh.setFrozenRows(1);
+    sh.setColumnWidth(1, 90);
+    sh.setColumnWidth(2, 110);
+    sh.setColumnWidth(3, 420);
+    sh.setColumnWidth(4, 130);
+  }
+  return sh;
+}
+
+function clean_(value, max) {
+  var s = String(value == null ? &#x27;&#x27; : value);
+  s = s.replace(/[\u0000-\u001F\u007F]+/g, &#x27; &#x27;).replace(/\s+/g, &#x27; &#x27;).trim();
+  if (s.length &gt; max) s = s.slice(0, max);
+  return s;
+}
+
+function addComment_(itemId, nickname, comment) {
+  var id = clean_(itemId, 64);
+  var nick = clean_(nickname, MAX_NICK) || &#x27;익명&#x27;;
+  var text = clean_(comment, MAX_TEXT);
+  if (!id) throw new Error(&#x27;item_id required&#x27;);
+  if (!text) throw new Error(&#x27;comment required&#x27;);
+
+  var created = Utilities.formatDate(new Date(), TZ, &#x27;yyyy-MM-dd HH:mm&#x27;);
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    var sh = sheet_();
+    sh.appendRow([id, nick, text, created]);
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true, item_id: id, nickname: nick, comment: text, created_at: created, c: listFor_(id) };
+}
+
+function rows_() {
+  var sh = sheet_();
+  var last = sh.getLastRow();
+  if (last &lt; 2) return [];
+  return sh.getRange(2, 1, last - 1, 4).getValues();
+}
+
+function listAll_() {
+  var rows = rows_();
+  var groups = {};
+  for (var i = 0; i &lt; rows.length; i++) {
+    var id = String(rows[i][0] || &#x27;&#x27;);
+    var text = String(rows[i][2] || &#x27;&#x27;);
+    if (!id || !text) continue;
+    if (!groups[id]) groups[id] = [];
+    groups[id].push({ n: String(rows[i][1] || &#x27;익명&#x27;), t: text, d: String(rows[i][3] || &#x27;&#x27;) });
+  }
+  var result = {};
+  for (var key in groups) {
+    if (!Object.prototype.hasOwnProperty.call(groups, key)) continue;
+    var arr = groups[key];
+    if (arr.length &gt; MAX_PER_ITEM) arr = arr.slice(arr.length - MAX_PER_ITEM);
+    arr.reverse();                                   // 최신순
+    result[key] = arr;
+  }
+  return result;
+}
+
+function listFor_(itemId) {
+  var id = String(itemId || &#x27;&#x27;);
+  var rows = rows_();
+  var arr = [];
+  for (var i = 0; i &lt; rows.length; i++) {
+    if (String(rows[i][0] || &#x27;&#x27;) !== id) continue;
+    var text = String(rows[i][2] || &#x27;&#x27;);
+    if (!text) continue;
+    arr.push({ n: String(rows[i][1] || &#x27;익명&#x27;), t: text, d: String(rows[i][3] || &#x27;&#x27;) });
+  }
+  if (arr.length &gt; MAX_PER_ITEM) arr = arr.slice(arr.length - MAX_PER_ITEM);
+  return arr.reverse();
+}
+
+function queryToObject_(raw) {
+  var out = {};
+  String(raw || &#x27;&#x27;).split(&#x27;&amp;&#x27;).forEach(function (pair) {
+    if (!pair) return;
+    var i = pair.indexOf(&#x27;=&#x27;);
+    var k = i &lt; 0 ? pair : pair.slice(0, i);
+    var v = i &lt; 0 ? &#x27;&#x27; : pair.slice(i + 1);
+    out[decodeURIComponent(k.replace(/\+/g, &#x27; &#x27;))] = decodeURIComponent(v.replace(/\+/g, &#x27; &#x27;));
+  });
+  return out;
+}</textarea>
+  <a class="back" href="./">← 웅숑으로 돌아가기</a>
+</div>
+<script>
+(function(){
+  var btn = document.getElementById('cp'), ta = document.getElementById('code');
+  function flash(t, ok){ btn.textContent = t; btn.classList.toggle('done', !!ok);
+    setTimeout(function(){ btn.textContent = '① 코드 전체 복사하기'; btn.classList.remove('done'); }, 2600); }
+  function fallback(){
+    try { ta.focus(); ta.select(); ta.setSelectionRange(0, ta.value.length);
+      var ok = document.execCommand('copy'); flash(ok ? '복사됐어요! 이제 붙여넣으세요' : '길게 눌러 직접 복사해 주세요', ok);
+    } catch(e){ flash('길게 눌러 직접 복사해 주세요', false); }
+  }
+  btn.addEventListener('click', function(){
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(ta.value).then(function(){ flash('복사됐어요! 이제 붙여넣으세요', true); }, fallback);
+    } else fallback();
+  });
+})();
+</script>
+</body>
+</html>
