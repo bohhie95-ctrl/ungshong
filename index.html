@@ -2758,11 +2758,11 @@ var total = 0;
     h += '<circle cx="160" cy="160" r="148" fill="none" stroke="#E7D9C6" stroke-width="3"/>';
     return h + '</svg>';
   }
-  function rlActions(p){
+  function rlActions(p, withAgain){
     return '<div class="rlacts">' +
       '<button class="ptool" type="button" data-rgo="1">👀 가게 보기</button>' +
       (p.map ? '<a class="ptool" href="' + esc(p.map) + '" target="_blank" rel="noopener">🗺️ 지도 열기</a>' : '') +
-      '<button class="ptool" type="button" data-again="1">🎡 다시 돌리기</button>' +
+      (withAgain === false ? '' : '<button class="ptool" type="button" data-again="1">🎡 다시 돌리기</button>') +
       '</div>';
   }
   function openRoulette(){
@@ -2779,7 +2779,7 @@ var total = 0;
         '<div class="rlmeta">' + esc(regionText(only.region)) +
           (only._lb ? '<span class="mtag">' + esc(only._lb) + '</span>' : '') + '</div>' +
         (only.desc ? '<div class="rlmeta">' + esc(only.desc) + '</div>' : '') +
-        rlActions(only) + '</div>' +
+        rlActions(only, false) + '</div>' +
         '<div class="rlfoot"><span>지금 조건 1곳</span>' +
           '<button class="ptool ghost" type="button" data-close="1">닫기</button></div>';
       openModal(h);
