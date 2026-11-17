@@ -2248,8 +2248,8 @@ var total = 0;
       var on = (CMNICK && CMNICK === top[i].n);
       h += '<button class="cmrankchip' + (on ? ' on' : '') + '" type="button" data-cmr="' + esc(top[i].n) + '"' +
         ' aria-pressed="' + (on ? 'true' : 'false') + '" title="' + esc(top[i].n) + ' 님 후기만 보기">' +
-        '<span class="md" aria-hidden="true">' + MED[i] + '</span>' + esc(top[i].n) +
-        ' <b>' + top[i].c + '</b>곳</button>';
+        '<span class="md" aria-hidden="true">' + MED[i] + '</span>' +
+        '<span class="nm">' + esc(top[i].n) + ' <b>' + top[i].c + '</b>곳</span></button>';
     }
     h += '</div>';
     h += '<div class="cmranknote">' + (CMNICK
