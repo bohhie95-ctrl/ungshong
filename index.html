@@ -167,9 +167,19 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
   border-radius:16px;padding:14px 15px}
 .pintro h2{font-size:15px;margin:0 0 6px;letter-spacing:-.01em}
 .pintro p{margin:0;font-size:12.5px;line-height:1.6;color:#5A6B61}
-.psec{padding:18px 14px 0}
-.psec h3{font-size:13px;font-weight:800;color:#5C534C;margin:0 0 9px;display:flex;align-items:center;gap:7px}
-.psec h3 .n{color:#A2968B;font-weight:700;font-size:11.5px}
+.psec{padding:14px 14px 0}
+/* 카테고리 아코디언: 헤더를 누르면 접었다 펴진다 (기본 접힘) */
+.psec .phead{width:100%;display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line);
+  border-radius:12px;padding:12px 13px;font-family:inherit;font-size:13.5px;font-weight:800;color:#5C534C;
+  text-align:left;letter-spacing:-.01em;touch-action:manipulation;-webkit-tap-highlight-color:rgba(31,122,77,.14);
+  transition:background .12s}
+.psec .phead:active{background:#F1F8F4}
+.psec .phead .n{color:#A2968B;font-weight:700;font-size:11.5px}
+.psec .phead .tg{margin-left:auto;font-size:11px;line-height:1;color:#B4A99E;transition:transform .18s,color .18s}
+.psec.open .phead{background:#F7FBF8;border-color:#D8E9DE;color:#2C5C43}
+.psec.open .phead .tg{transform:rotate(90deg);color:#1F7A4D}
+.psec .pbody{padding-top:9px}
+.psec:not(.open) .pbody{display:none}
 /* 장소 카드 전체가 하나의 링크 — 작은 버튼만 눌리던 문제 해결 */
 .prow{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:8px;overflow:hidden}
 .pmain{display:block;padding:13px 14px 12px;text-decoration:none;color:inherit;min-height:56px;
@@ -415,14 +425,15 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
     return out+'</div>';
   }
 
+  var SECOPEN = {};
   function renderPlaces(){
     var qq = norm(state.q);
     empty.innerHTML = EMPTY_PLACE;
     var html = '<div class="pintro"><h2>📍 친구랑 갈 국내 가볼 곳 '+PL_N+'곳</h2>'+
       '<p>인스타 저장에서 추린 국내 맛집·카페·술집·체험·숙소예요. '+
-      '카드를 아무 데나 누르면 네이버 지도 검색이나 원본 인스타 게시물로 바로 열려요.</p></div>';
+      '카테고리를 누르면 목록이 펼쳐지고, 카드를 아무 데나 누르면 네이버 지도 검색이나 원본 인스타 게시물로 바로 열려요.</p></div>';
     var total = 0;
-    PL.forEach(function(sec){
+    PL.forEach(function(sec, si){
       if(sec.k === 'folder') return;
       var rows = sec.p.filter(function(p){
         if(!qq) return true;
@@ -430,15 +441,32 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
       });
       if(!rows.length) return;
       total += rows.length;
-      html += '<div class="psec"><h3>'+esc(sec.t)+' <span class="n">'+rows.length+'곳</span></h3>';
+      // 검색 중에는 결과가 바로 보이도록 자동으로 펼친다. 검색어를 지우면 저장된(기본 접힘) 상태로 돌아간다.
+      var open = qq ? true : !!SECOPEN[si];
+      html += '<div class="psec'+(open ? ' open' : '')+'" data-s="'+si+'">'+
+        '<button class="phead" type="button" aria-expanded="'+(open ? 'true' : 'false')+'">'+
+        '<span class="pt">'+esc(sec.t)+'</span><span class="n">'+rows.length+'곳</span>'+
+        '<span class="tg" aria-hidden="true">▸</span></button>'+
+        '<div class="pbody">';
       rows.forEach(function(p){ html += rowHTML(p); });
-      html += '</div>';
+      html += '</div></div>';
     });
     placesEl.innerHTML = html;
     placesEl.hidden = false;
     cnt.innerHTML = qq ? ('<b>'+total+'</b>곳 / '+(PL_N+PL_LIST)) : ('<b>'+total+'</b>곳');
     empty.classList.toggle('on', total === 0);
   }
+
+  // 카테고리 헤더 탭 = 접기/펼치기 (장소 카드는 링크 그대로 동작)
+  placesEl.addEventListener('click', function(ev){
+    var head = ev.target.closest ? ev.target.closest('.phead') : null;
+    if(!head) return;
+    var sec = head.parentNode;
+    var open = !sec.classList.contains('open');
+    sec.classList.toggle('open', open);
+    head.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if(!norm(state.q)) SECOPEN[sec.getAttribute('data-s')] = open;
+  });
 
   // ---------- view switch ----------
   var tabbar = document.getElementById('tabbar');
