@@ -372,6 +372,25 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
 .hero{position:relative}
 .herobtn:active{background:#F6EFE8}
 
+
+/* --- 🙋‍♀️ 추가·수정 요청 --- */
+.herobtn.req{right:58px;width:auto;padding:0 11px;border-radius:999px;gap:4px;
+  font-size:12px;font-weight:800;letter-spacing:-.01em;color:#5C534C}
+.herobtn.req .em{font-size:14px;line-height:1}
+.reqlead{font-size:12.5px;line-height:1.55;color:#5A5049;margin:0 0 2px}
+.reqpills{display:flex;flex-wrap:wrap;gap:6px;margin:11px 0 9px}
+.reqpill{font-family:inherit;font-size:11.5px;font-weight:800;color:#6E5A4A;background:#fff;
+  border:1px solid #E7DCCF;border-radius:999px;padding:6px 10px;white-space:nowrap;cursor:pointer;
+  touch-action:manipulation;-webkit-tap-highlight-color:rgba(225,84,46,.12)}
+.reqpill.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.reqpill:active{background:#F8F1EA}
+.reqpill.on:active{background:var(--accent)}
+.reqtext{width:100%;border:1px solid var(--line);border-radius:11px;padding:9px 10px;background:#fff;
+  font-family:inherit;font-size:13.5px;color:#2A2320;outline:0}
+.reqtext:focus{border-color:#E9BDAA}
+.reqrow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
+.reqcnt{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+
 /* --- 카드 공유 버튼 --- */
 .sbtn{display:inline-flex;align-items:center;gap:4px;font-family:inherit;font-size:11.5px;font-weight:800;
   color:#5C534C;background:#fff;border:1px solid #E7DCCF;border-radius:999px;padding:6px 10px;
@@ -436,6 +455,7 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
 <header class="hero" id="hero">
   <div class="kicker">다같이 정한 음식 · 맛집</div>
   <h1 class="brand">다정집</h1>
+  <button class="herobtn req" id="reqbtn" type="button" aria-label="추가·수정 요청" title="추가·수정 요청"><span class="em">🙋‍♀️</span> 요청</button>
   <button class="herobtn" id="bkbtn" type="button" aria-label="찜·다녀옴 백업/복원" title="찜·다녀옴 백업/복원">💾</button>
   <div class="stats"><b>레시피 158</b> · 사진 158 · 가볼 곳 1206</div>
 </header>
@@ -452,7 +472,6 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
   <div class="subrow">
     <div class="cnt" id="cnt"></div>
     <button class="favpill" id="favpill" type="button" aria-pressed="false">♡ 찜만 <span class="n" id="favn">0</span></button>
-    <button class="cmbtn" id="cmallbtn" type="button" aria-pressed="false" aria-label="후기 있는 곳만 모아보기">💬 후기 <span class="n" id="cmalln">0</span></button>
     <div class="seg" id="stat"></div>
     <div class="ptools" id="ptools" hidden><button class="ptool" id="dicebtn" type="button" aria-label="오늘 어디 가지 랜덤 뽑기">🎲 오늘 어디 가지?</button></div>
   </div>
@@ -471,6 +490,7 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
 <nav class="tabbar" id="tabbar">
   <button data-v="recipe" class="on"><span class="ti">🍚</span>레시피</button>
   <button data-v="place"><span class="ti">📍</span>가볼 곳</button>
+  <button data-v="comment"><span class="ti">💬</span>후기</button>
 </nav>
 
 <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="레시피 상세">
@@ -1233,6 +1253,95 @@ var UNGC = (function () {
   }
 
 
+  /* ---------- 🙋‍♀️ 추가·수정 요청 (친구가 로그인 없이 남기는 요청함) ---------- */
+  var REQ_ID = '__req__';                  /* 요청 전용 item_id — 후기 수 집계에서 제외 */
+  var REQ_KINDS = ['📍 맛집 추가', '✏️ 정보 수정·폐업', '🍳 레시피 추가'];
+  var REQ_MAX = 120;
+
+  function reqNorm(v){ return String(v == null ? '' : v).trim(); }
+
+  function openRequest(){
+    if (!UNGC.enabled()) { toast('지금은 요청을 받을 수 없어요'); return; }
+    var saved = '';
+    try { saved = localStorage.getItem('ungshong.nick') || ''; } catch (e) {}
+    var pills = '';
+    REQ_KINDS.forEach(function (k, i) {
+      pills += '<button class="reqpill' + (i === 0 ? ' on' : '') + '" type="button" data-rk="' +
+        esc(k) + '" aria-pressed="' + (i === 0 ? 'true' : 'false') + '">' + esc(k) + '</button>';
+    });
+    openModal(
+      '<div class="diceh">🙋‍♀️ 추가 · 수정 요청</div>' +
+      '<p class="reqlead">찾는 맛집이나 레시피가 없거나, 폐업·영업시간 변경을 알려 주세요!</p>' +
+      '<input id="reqnick" class="cnick" type="text" maxlength="12" autocomplete="nickname" ' +
+        'placeholder="닉네임 (기본 익명)" value="' + esc(saved) + '">' +
+      '<div class="reqpills" id="reqpills">' + pills + '</div>' +
+      '<input id="reqtext" class="reqtext" type="text" maxlength="' + REQ_MAX + '" autocomplete="off" ' +
+        'placeholder="가게 이름·동네·인스타 링크, 바뀐 내용을 한 줄로">' +
+      '<div class="reqrow"><span class="reqcnt" id="reqcnt">0/' + REQ_MAX + '</span>' +
+        '<button class="ptool pri" id="reqsend" type="button">보내기</button></div>' +
+      '<div class="cmsg" id="reqmsg" role="status"></div>' +
+      '<div class="dicefoot"><span>보내 주시면 확인 후 리스트에 반영할게요</span>' +
+        '<button class="ptool ghost" type="button" data-close="1">닫기</button></div>'
+    );
+
+    var kind = REQ_KINDS[0], busy = false;
+    var pillsEl = document.getElementById('reqpills');
+    var nIn = document.getElementById('reqnick');
+    var tIn = document.getElementById('reqtext');
+    var cnt = document.getElementById('reqcnt');
+    var msg = document.getElementById('reqmsg');
+    var send = document.getElementById('reqsend');
+
+    function say(txt, cls){
+      if (!msg) return;
+      msg.textContent = txt || '';
+      msg.className = 'cmsg' + (cls ? ' ' + cls : '');
+    }
+    if (pillsEl) pillsEl.addEventListener('click', function (ev) {
+      var b = ev.target.closest ? ev.target.closest('[data-rk]') : null;
+      if (!b) return;
+      kind = b.getAttribute('data-rk');
+      var all = pillsEl.querySelectorAll('.reqpill');
+      for (var i = 0; i < all.length; i++) {
+        var on = (all[i] === b);
+        all[i].classList.toggle('on', on);
+        all[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+      }
+    });
+    if (tIn) {
+      tIn.addEventListener('input', function () {
+        if (cnt) cnt.textContent = (tIn.value || '').length + '/' + REQ_MAX;
+      });
+    }
+    function submit(){
+      if (busy) return;
+      var tv = reqNorm(tIn && tIn.value);
+      if (!tv) { say('요청 내용을 한 줄 적어 주세요.', 'err'); if (tIn) tIn.focus(); return; }
+      var nv = reqNorm(nIn && nIn.value).slice(0, 12) || '익명';
+      try { localStorage.setItem('ungshong.nick', nv); } catch (e) {}
+      busy = true;
+      if (send) { send.disabled = true; send.textContent = '보내는 중…'; }
+      var body = '[' + kind + '] ' + tv.slice(0, REQ_MAX);
+      UNGC.add(REQ_ID, nv, body, function (ok) {
+        busy = false;
+        if (send) { send.disabled = false; send.textContent = '보내기'; }
+        if (!ok) { say('보내지 못했어요. 잠시 뒤 다시 눌러 주세요.', 'err'); return; }
+        if (tIn) tIn.value = '';
+        if (cnt) cnt.textContent = '0/' + REQ_MAX;
+        say('요청이 접수됐어요! 확인 후 반영할게요 🙌', 'ok');
+        toast('요청이 접수됐어요! 확인 후 반영할게요 🙌');
+        setTimeout(closeModal, 1500);
+      });
+    }
+    if (send) send.addEventListener('click', submit);
+    if (tIn) tIn.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter' && !ev.isComposing) { ev.preventDefault(); submit(); }
+    });
+  }
+  var reqBtn = document.getElementById('reqbtn');
+  if (reqBtn) reqBtn.addEventListener('click', openRequest);
+
+
   D.forEach(function(e){
     e._s = norm([e.t, e.c, e.ing, e.m, e.in, e.sn].concat(e.s.map(function(x){return x.t+' '+x.sub.join(' ');}),
       e.x.map(function(x){return x.l+' '+x.v;})).join(' '));
@@ -1538,13 +1647,18 @@ var UNGC = (function () {
     return UNGC.count(UNGC.placeId(p.name, p.region));
   }
 
-  /* 모든 장소 후기를 합친 총 후기 수 — 하단 줄 💬 후기 pill 숫자 */
+  /* 모든 장소 후기를 합친 총 후기 수 — 하단 줄 💬 후기 pill 숫자
+     🙋‍♀️ 추가·수정 요청(item_id '__req__')은 후기가 아니므로 합산에서 뺀다. */
   function commentAllCount(){
     if(!UNGC.enabled()) return 0;
     var n = 0;
     PL.forEach(function(sec){
       if(sec.k === 'folder') return;
-      sec.p.forEach(function(p){ n += UNGC.count(UNGC.placeId(p.name, p.region)); });
+      sec.p.forEach(function(p){
+        var id = UNGC.placeId(p.name, p.region);
+        if(id === REQ_ID) return;              /* 요청함은 후기 수에서 제외 */
+        n += UNGC.count(id);
+      });
     });
     return n;
   }
@@ -1598,32 +1712,16 @@ var UNGC = (function () {
     renderCmPill();
   }
 
-  /* 하단 줄 💬 후기 pill — 어느 탭에서든 눌러서 후기 있는 곳으로 바로 모아본다 */
-  var cmAllBtn = document.getElementById('cmallbtn');
+  /* 하단 탭바 💬 후기 탭 — 후기(non-__req__)가 달린 곳만 모아 본다 */
+  var cmTabBtn = document.querySelector('#tabbar button[data-v="comment"]');
   function renderCmPill(){
-    if(!cmAllBtn) return;
+    if(!cmTabBtn) return;
     var en = UNGC.enabled();
-    cmAllBtn.hidden = !en;
-    var nEl = document.getElementById('cmalln');
-    if(nEl) nEl.textContent = en ? commentAllCount() : 0;
-    var on = en && state.view === 'place' && state.pchip === 'comment';
-    cmAllBtn.classList.toggle('on', on);
-    cmAllBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    cmTabBtn.hidden = !en;
+    var on = en && state.view === 'comment';
+    cmTabBtn.classList.toggle('on', on);
+    cmTabBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
   }
-  if(cmAllBtn) cmAllBtn.addEventListener('click', function(){
-    if(state.view === 'recipe'){
-      /* 레시피에서 쓰던 검색어·지역 필터가 남아 있으면 결과가 비므로 비우고 '후기 있는 곳'만 모아 보여준다 */
-      if(q){ q.value = ''; }
-      if(qx){ qx.classList.remove('on'); }
-      state.q = ''; state.region = 'all'; SECOPEN = {};
-      state.pchip = 'comment';
-      setView('place');
-    } else {
-      state.pchip = (state.pchip === 'comment') ? 'all' : 'comment';
-      renderPChips(); renderPlaces();
-    }
-    renderCmPill();
-  });
 
   /* 후기 개수가 바뀌면(불러오기·새 후기) 칩 숫자와 💬 후기 목록을 함께 갱신 */
   var _cmtHookBusy = false;
@@ -1772,7 +1870,12 @@ var total = 0;
     placesEl.innerHTML = html;
     placesEl.hidden = false;
     UNGC.refreshCounts();
-    cnt.innerHTML = on ? ('<b>'+total+'</b>곳 / '+(PL_N+PL_LIST)) : ('<b>'+PL_N+'</b>곳');
+    if(state.view === 'comment'){
+      /* 💬 후기 탭: 모아 본 곳 수 + 전체 후기 수를 여기서 보여 준다 */
+      cnt.innerHTML = '<b>'+total+'</b>곳 · 💬 후기 <b>'+commentAllCount()+'</b>개';
+    } else {
+      cnt.innerHTML = on ? ('<b>'+total+'</b>곳 / '+(PL_N+PL_LIST)) : ('<b>'+PL_N+'</b>곳');
+    }
     empty.classList.toggle('on', total === 0);
   }
 
@@ -1814,14 +1917,22 @@ var total = 0;
     Array.prototype.forEach.call(tabbar.querySelectorAll('button'), function(b){
       b.classList.toggle('on', b.getAttribute('data-v') === v);
     });
-    var isR = v === 'recipe';
-    q.setAttribute('placeholder', isR ? '재료 여러 개로 찾기 (예: 스팸 계란)' : '장소·지역·주차·애견으로 찾기 (예: 연남 카페)');
+    var isR = v === 'recipe', isC = v === 'comment';
+    if(isC){
+      /* 후기 탭: 레시피에서 쓰던 검색어·지역 필터를 비우고 후기 있는 곳만 */
+      if(q){ q.value = ''; if(qx) qx.classList.remove('on'); }
+      state.q = ''; state.region = 'all'; SECOPEN = {}; state.pchip = 'comment';
+    } else if(state.pchip === 'comment'){
+      state.pchip = 'all';
+    }
+    q.setAttribute('placeholder', isR ? '재료 여러 개로 찾기 (예: 스팸 계란)'
+      : (isC ? '후기 남긴 곳에서 찾기 (예: 연남 카페)' : '장소·지역·주차·애견으로 찾기 (예: 연남 카페)'));
     document.getElementById('cats').style.display = isR ? '' : 'none';
     document.getElementById('stat').style.display = isR ? '' : 'none';
     favPill.style.display = isR ? '' : 'none';
-    pchipsEl.hidden = isR;
-    var rcEl = document.getElementById('rchips'); if(rcEl) rcEl.hidden = isR;
-    var ptEl = document.getElementById('ptools'); if(ptEl) ptEl.hidden = isR;
+    pchipsEl.hidden = isR || isC;
+    var rcEl = document.getElementById('rchips'); if(rcEl) rcEl.hidden = isR || isC;
+    var ptEl = document.getElementById('ptools'); if(ptEl) ptEl.hidden = isR || isC;
     grid.style.display = isR ? '' : 'none';
     empty.classList.toggle('on', false);
     if(isR){ renderGrid(); }
