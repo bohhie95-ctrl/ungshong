@@ -579,8 +579,9 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
 .srow{display:flex;align-items:center;gap:7px}
 .srow .sbox{flex:1;min-width:0}
 #rtools{flex:0 0 auto}
-#rdicebtn{background:#FFF7F0;border-color:#EEDCCB;color:#B8431F}/* v10.3: 크기는 .bar .ptool(가볼 곳 #dicebtn)과 동일, 색상만 포인트 */
-#rdicebtn:active{background:#FBE9DC}
+/* v10.5: 두 탭 랜덤 버튼 색 통일 — #rdicebtn(오늘 뭐 먹지?) 포인트 색을 #dicebtn(오늘 어디 가지?)에도 그대로 적용 */
+#rdicebtn,#dicebtn{background:#FFF7F0;border-color:#EEDCCB;color:#B8431F}
+#rdicebtn:active,#dicebtn:active{background:#FBE9DC}
 /* 냉털 재료 칩 줄(#rcchips) — v10.3: 위 1·2줄 공통 규칙(#cchips와 동일)을 그대로 쓰고 여기서는 덮어쓰지 않는다 */
 /* 레시피 조건 칩(전체 · ♡ 찜 · ⚡ 초간단 · 🔌 렌지·에프 · 🔥 가스·팬) — v10.3: 가볼 곳 #pchips와 같은 .bar .chip 규칙을 그대로 쓴다(개별 오버라이드 없음) */
 /* 카드 썸네일: 💬 후기 배지 (1건 이상일 때만) */
@@ -1952,14 +1953,14 @@ var UNGC = (function () {
   /* ---------- 🧊 냉장고 털기 재료 칩 (다중 선택 AND) ----------
      각 레시피의 ing·t·x 텍스트에서 키워드를 찾는다. 한국 요리 표기(계란/달걀, 목살/삼겹살 …)도 함께 잡는다. */
   var INGCHIPS = [
-    { k:'egg',     t:'🥚 계란',      re:/계란|달걀/ },
-    { k:'tofu',    t:'🧊 두부',      re:/두부/ },
-    { k:'cabbage', t:'🥬 양배추',    re:/양배추/ },
-    { k:'pork',    t:'🐷 돼지고기',  re:/돼지고기|목살|삼겹살|대패|앞다리|다짐육/ },
-    { k:'chicken', t:'🍗 닭',        re:/닭/ },
-    { k:'tuna',    t:'🐟 참치',      re:/참치/ },
-    { k:'kimchi',  t:'🌶️ 김치',      re:/김치/ },
-    { k:'cheese',  t:'🧀 치즈',      re:/치즈/ }
+    { k:'egg',     t:'계란',      re:/계란|달걀/ },
+    { k:'tofu',    t:'두부',      re:/두부/ },
+    { k:'cabbage', t:'양배추',    re:/양배추/ },
+    { k:'pork',    t:'돼지고기',  re:/돼지고기|목살|삼겹살|대패|앞다리|다짐육/ },
+    { k:'chicken', t:'닭',        re:/닭/ },
+    { k:'tuna',    t:'참치',      re:/참치/ },
+    { k:'kimchi',  t:'김치',      re:/김치/ },
+    { k:'cheese',  t:'치즈',      re:/치즈/ }
   ];
   var INGBY = {};
   INGCHIPS.forEach(function(c){ INGBY[c.k] = c; });
