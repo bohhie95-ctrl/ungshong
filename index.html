@@ -2109,7 +2109,9 @@ var UNGC = (function () {
     var src = e.ing;
     if(!src && e.x.length) src = e.x[0].v;
     if(!src) return '';
-    var parts = src.split(/[,\/\n]/).map(function(s){ return bare(s.replace(/^\*\*[^*]+\*\*\s*:\s*/, '')); }).filter(Boolean);
+    var parts = src.split(/[,\/\n]/).map(function(s){
+      return bare(s.replace(/^\*\*[^*]+\*\*\s*:\s*/, '').replace(/^\s*[가-힣]{1,6}\s*:\s*/, ''));
+    }).filter(Boolean);
     var show = [];
     for(var i=0;i<parts.length && show.length<3;i++){ if(show.indexOf(parts[i])<0) show.push(parts[i]); }
     return show.join('·');
