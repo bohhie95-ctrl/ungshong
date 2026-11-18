@@ -339,11 +339,12 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
 .bar .sbox{height:34px;border-radius:11px}
 .bar .chips{margin:4px -12px 0;gap:5px;padding:0 12px 1px}
 /* v9: 지역 칩은 1줄 가로 스와이프로 원복, 바로 아래 줄에 대표음식 카테고리 칩 */
-/* v10.3: 이 1·2줄 규칙은 레시피 탭 #cats(카테고리)·#rcchips(냉장고)에도 그대로 적용 — 두 탭 칩 크기 완전 통일 */
+/* v10.3: 이 1·2줄 규칙은 레시피 탭 #cats(카테고리)·#rcchips(냉털)에도 그대로 적용 — 두 탭 칩 크기 완전 통일 */
+/* v10.4: 두 탭 6줄 모두 맨 앞에 줄 라벨(.clab) — 레시피 음식·냉털·기타 / 가볼 곳 지역·음식·기타 */
 .bar #rchips,.bar #cchips,.bar #cats,.bar #rcchips{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:5px 6px;margin:5px -12px 0;
   padding:0 12px 2px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .bar #rchips::-webkit-scrollbar,.bar #cchips::-webkit-scrollbar,.bar #cats::-webkit-scrollbar,.bar #rcchips::-webkit-scrollbar{display:none}
-.bar #rchips .clab,.bar #cchips .clab,.bar #cats .clab,.bar #rcchips .clab{flex:0 0 auto;padding-right:0}
+.bar #rchips .clab,.bar #cchips .clab,.bar #pchips .clab,.bar #cats .clab,.bar #rcchips .clab,.bar #rconds .clab{flex:0 0 auto;align-self:center;padding-right:0;white-space:nowrap}
 .bar #rchips .chip,.bar #cchips .chip,.bar #cats .chip,.bar #rcchips .chip{flex:0 0 auto;font-size:11.5px;padding:5px 8px}
 .bar #rchips .chip .c,.bar #cchips .chip .c,.bar #cats .chip .c,.bar #rcchips .chip .c{font-size:10.5px;margin-left:2px}
 .bar #cchips .chip{font-weight:750}
@@ -580,7 +581,7 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
 #rtools{flex:0 0 auto}
 #rdicebtn{background:#FFF7F0;border-color:#EEDCCB;color:#B8431F}/* v10.3: 크기는 .bar .ptool(가볼 곳 #dicebtn)과 동일, 색상만 포인트 */
 #rdicebtn:active{background:#FBE9DC}
-/* 🧊 냉장고 털기 재료 칩 줄 — v10.3: 위 1·2줄 공통 규칙(#cchips와 동일)을 그대로 쓰고 여기서는 덮어쓰지 않는다 */
+/* 냉털 재료 칩 줄(#rcchips) — v10.3: 위 1·2줄 공통 규칙(#cchips와 동일)을 그대로 쓰고 여기서는 덮어쓰지 않는다 */
 /* 레시피 조건 칩(전체 · ♡ 찜 · ⚡ 초간단 · 🔌 렌지·에프 · 🔥 가스·팬) — v10.3: 가볼 곳 #pchips와 같은 .bar .chip 규칙을 그대로 쓴다(개별 오버라이드 없음) */
 /* 카드 썸네일: 💬 후기 배지 (1건 이상일 때만) */
 .rcmb{position:absolute;left:7px;top:7px;z-index:3;display:none;align-items:center;gap:2px;
@@ -2044,7 +2045,7 @@ var UNGC = (function () {
     if(!iceEl) return;
     iceEl.hidden = (state.view !== 'recipe');
     if(iceEl.hidden) return;
-    var html = '<span class="clab" aria-hidden="true">🧊 냉장고</span>' +
+    var html = '<span class="clab" aria-hidden="true">냉털</span>' +
       '<button class="chip' + (!ingOn() ? ' on' : '') + '" type="button" data-ic="all" aria-pressed="' +
         (ingOn() ? 'false' : 'true') + '">전체</button>';
     INGCHIPS.forEach(function(c){
@@ -2140,7 +2141,8 @@ var UNGC = (function () {
   var catsEl = document.getElementById('cats');
   function renderCats(){
     var counts = {}; D.forEach(function(e){ counts[e.c] = (counts[e.c]||0)+1; });
-    var html = '<button class="chip'+(state.cat==='all'?' on':'')+'" data-c="all">전체<span class="c">'+D.length+'</span></button>';
+    var html = '<span class="clab" aria-hidden="true">음식</span>' +
+      '<button class="chip'+(state.cat==='all'?' on':'')+'" data-c="all">전체<span class="c">'+D.length+'</span></button>';
     CATS.forEach(function(c){
       html += '<button class="chip'+(state.cat===c?' on':'')+'" data-c="'+esc(c)+'">'+esc(c)+'<span class="c">'+counts[c]+'</span></button>';
     });
@@ -2163,7 +2165,8 @@ var UNGC = (function () {
     if(rcondsEl.hidden) return;
     var counts = { quick:nQuick, appliance:nAppliance, stove:nStove };
     var allOn = !state.fav && !statOn();
-    var html = '<button class="chip'+(allOn?' on':'')+'" type="button" data-rd="all" aria-pressed="'+(allOn?'true':'false')+'">전체</button>';
+    var html = '<span class="clab" aria-hidden="true">기타</span>' +
+      '<button class="chip'+(allOn?' on':'')+'" type="button" data-rd="all" aria-pressed="'+(allOn?'true':'false')+'">전체</button>';
     html += '<button class="chip mk'+(state.fav?' on':'')+'" type="button" data-rd="fav" aria-pressed="'+(state.fav?'true':'false')+'">♡ 찜<span class="c">'+favCount()+'</span></button>';
     STATOPTS.forEach(function(o){
       var on = statHas(o.k);
@@ -2396,7 +2399,7 @@ var UNGC = (function () {
       all.forEach(function(p){ if(placeMatch(p, c.k)) n++; });
       counts[c.k] = n;
     });
-    var html = '';
+    var html = '<span class="clab" aria-hidden="true">기타</span>';
     PCHIPS.forEach(function(c){
       var cls = 'chip';
       if(c.k === 'fav' || c.k === 'done') cls += ' mk';
