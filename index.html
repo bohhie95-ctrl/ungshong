@@ -339,19 +339,20 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
 .bar .sbox{height:34px;border-radius:11px}
 .bar .chips{margin:4px -12px 0;gap:5px;padding:0 12px 1px}
 /* v9: 지역 칩은 1줄 가로 스와이프로 원복, 바로 아래 줄에 대표음식 카테고리 칩 */
-.bar #rchips,.bar #cchips{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:5px 6px;margin:5px -12px 0;
+/* v10.3: 이 1·2줄 규칙은 레시피 탭 #cats(카테고리)·#rcchips(냉장고)에도 그대로 적용 — 두 탭 칩 크기 완전 통일 */
+.bar #rchips,.bar #cchips,.bar #cats,.bar #rcchips{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:5px 6px;margin:5px -12px 0;
   padding:0 12px 2px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-.bar #rchips::-webkit-scrollbar,.bar #cchips::-webkit-scrollbar{display:none}
-.bar #rchips .clab,.bar #cchips .clab{flex:0 0 auto;padding-right:0}
-.bar #rchips .chip,.bar #cchips .chip{flex:0 0 auto;font-size:11.5px;padding:5px 8px}
-.bar #rchips .chip .c,.bar #cchips .chip .c{font-size:10.5px;margin-left:2px}
+.bar #rchips::-webkit-scrollbar,.bar #cchips::-webkit-scrollbar,.bar #cats::-webkit-scrollbar,.bar #rcchips::-webkit-scrollbar{display:none}
+.bar #rchips .clab,.bar #cchips .clab,.bar #cats .clab,.bar #rcchips .clab{flex:0 0 auto;padding-right:0}
+.bar #rchips .chip,.bar #cchips .chip,.bar #cats .chip,.bar #rcchips .chip{flex:0 0 auto;font-size:11.5px;padding:5px 8px}
+.bar #rchips .chip .c,.bar #cchips .chip .c,.bar #cats .chip .c,.bar #rcchips .chip .c{font-size:10.5px;margin-left:2px}
 .bar #cchips .chip{font-weight:750}
 .bar #cchips .chip.on{background:#2A2118;border-color:#2A2118;color:#FFF6E8}
 .bar #cchips .chip.on .c{color:#FFD08A}
 @media(max-width:379px){
-  .bar #rchips,.bar #cchips{gap:4px 5px}
-  .bar #rchips .chip,.bar #cchips .chip{font-size:11px;padding:4px 6px}
-  .bar #rchips .chip .c,.bar #cchips .chip .c{font-size:10px;margin-left:1px}
+  .bar #rchips,.bar #cchips,.bar #cats,.bar #rcchips{gap:4px 5px}
+  .bar #rchips .chip,.bar #cchips .chip,.bar #cats .chip,.bar #rcchips .chip{font-size:11px;padding:4px 6px}
+  .bar #rchips .chip .c,.bar #cchips .chip .c,.bar #cats .chip .c,.bar #rcchips .chip .c{font-size:10px;margin-left:1px}
 }
 .bar .chip{padding:3px 9px;font-size:11.5px}
 .bar .subrow{padding:2px 1px 0;min-height:16px}
@@ -577,16 +578,10 @@ code{background:#F3ECE5;border-radius:5px;padding:1px 5px;font-size:.92em;white-
 .srow{display:flex;align-items:center;gap:7px}
 .srow .sbox{flex:1;min-width:0}
 #rtools{flex:0 0 auto}
-#rdicebtn{background:#FFF7F0;border-color:#EEDCCB;color:#B8431F;font-size:11.5px;font-weight:850;padding:6px 10px}
+#rdicebtn{background:#FFF7F0;border-color:#EEDCCB;color:#B8431F}/* v10.3: 크기는 .bar .ptool(가볼 곳 #dicebtn)과 동일, 색상만 포인트 */
 #rdicebtn:active{background:#FBE9DC}
-/* 🧊 냉장고 털기 재료 칩 줄 (가로 1줄 스와이프) */
-#rcchips{margin-top:5px}
-#rcchips .chip{font-size:11.5px;padding:5px 9px}
-#rcchips .chip .c{font-size:10.5px;margin-left:2px}
-/* 레시피 조건 칩(전체 · ♡ 찜 · ⚡ 초간단 · 🔌 렌지·에프 · 🔥 가스·팬) — 가볼 곳 #pchips와 같은 흰 칩 줄 */
-#rconds{margin-top:5px}
-#rconds .chip{font-size:11.5px;padding:5px 9px}
-#rconds .chip .c{font-size:10.5px;margin-left:2px}
+/* 🧊 냉장고 털기 재료 칩 줄 — v10.3: 위 1·2줄 공통 규칙(#cchips와 동일)을 그대로 쓰고 여기서는 덮어쓰지 않는다 */
+/* 레시피 조건 칩(전체 · ♡ 찜 · ⚡ 초간단 · 🔌 렌지·에프 · 🔥 가스·팬) — v10.3: 가볼 곳 #pchips와 같은 .bar .chip 규칙을 그대로 쓴다(개별 오버라이드 없음) */
 /* 카드 썸네일: 💬 후기 배지 (1건 이상일 때만) */
 .rcmb{position:absolute;left:7px;top:7px;z-index:3;display:none;align-items:center;gap:2px;
   font-size:10px;font-weight:850;color:#fff;background:rgba(26,20,16,.62);border-radius:999px;padding:3px 7px;
